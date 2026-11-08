@@ -2,3 +2,4 @@ node_modules/
 site-dist/
 tmp/
 .DS_Store
+promo/out/

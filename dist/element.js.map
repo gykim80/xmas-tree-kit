@@ -1,1 +1,1 @@
-{"version":3,"file":"element.js","names":[],"sources":["../src/element-define.js"],"sourcesContent":["// import 'xmas-tree-kit/element' 만 해도 <xmas-tree> 가 등록된다\nimport { defineXmasTree } from './element.js';\nexport * from './element.js';\ndefineXmasTree();\n"],"mappings":";;AAGA,eAAe"}
+{"version":3,"file":"element.js","names":[],"sources":["../src/element-define.js"],"sourcesContent":["// import 'xmas-tree-kit/element' alone registers <xmas-tree>\nimport { defineXmasTree } from './element.js';\nexport * from './element.js';\ndefineXmasTree();\n"],"mappings":";;AAGA,eAAe"}

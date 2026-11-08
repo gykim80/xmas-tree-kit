@@ -70,7 +70,7 @@ button:focus-visible, .file:focus-within { outline: 2px solid var(--accent); out
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-/* 조절판 */
+/* Control panel */
 .lil-gui.root { top: 12px !important; right: 12px !important; max-height: calc(100vh - 140px); }
 
 @media (max-width: 720px) {

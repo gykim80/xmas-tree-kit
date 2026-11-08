@@ -1,11 +1,20 @@
 {
   "name": "xmas-tree-kit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Procedural Christmas trees for three.js: grow a fir, decorate it, drop it into a game or a web page.",
   "type": "module",
   "license": "MIT",
   "author": "andrew <gybryce@gmail.com>",
-  "keywords": ["three", "threejs", "christmas", "tree", "procedural", "web-component", "glb", "gltf"],
+  "keywords": [
+    "three",
+    "threejs",
+    "christmas",
+    "tree",
+    "procedural",
+    "web-component",
+    "glb",
+    "gltf"
+  ],
   "main": "./dist/xmas-tree-kit.js",
   "module": "./dist/xmas-tree-kit.js",
   "exports": {
@@ -18,8 +27,18 @@
     "./src/*": "./src/*",
     "./package.json": "./package.json"
   },
-  "files": ["dist", "src", "README.md", "LICENSE"],
-  "sideEffects": ["./dist/element.js", "./dist/xmas-tree.standalone.js", "./src/element-define.js", "./src/standalone.js"],
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "./dist/element.js",
+    "./dist/xmas-tree.standalone.js",
+    "./src/element-define.js",
+    "./src/standalone.js"
+  ],
   "peerDependencies": {
     "three": ">=0.160.0"
   },
@@ -34,6 +53,7 @@
     "build": "vite build --config vite.lib.config.js && vite build --config vite.standalone.config.js",
     "build:site": "vite build --config vite.site.config.js",
     "test": "node --test test/*.test.js",
-    "check": "node scripts/check.mjs"
+    "check": "node scripts/check.mjs",
+    "promo": "node promo/render.mjs"
   }
 }

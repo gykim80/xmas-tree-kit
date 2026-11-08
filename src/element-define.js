@@ -1,4 +1,4 @@
-// import 'xmas-tree-kit/element' 만 해도 <xmas-tree> 가 등록된다
+// import 'xmas-tree-kit/element' alone registers <xmas-tree>
 import { defineXmasTree } from './element.js';
 export * from './element.js';
 defineXmasTree();

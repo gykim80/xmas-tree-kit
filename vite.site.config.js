@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
 
-// 에디터와 예제 페이지 (GitHub Pages 등 정적 호스팅용)
+// Editor and example pages (for static hosting such as GitHub Pages)
 export default defineConfig({
   base: './',
   server: { port: 5320, open: '/editor/' },

@@ -226,10 +226,10 @@ function createBulbMaterial(uniforms) {
         varying float vTw;`).replace("#include <begin_vertex>", `#include <begin_vertex>
         float twWave = 0.5 + 0.5 * sin(uTime * uTwinkle * (0.6 + fract(aPhase * 7.13)) + aPhase * 6.2831);
         vTw = mix(1.0, 0.25 + 0.75 * twWave * twWave, step(0.001, uTwinkle));
-        // 멀리 있는 전구가 1픽셀보다 작아지면 깜박이며 번진다: 최소 크기를 지키고 밝기는 면적만큼 줄인다
+        // Distant bulbs smaller than a pixel flicker: clamp to a minimum size and dim by the area ratio
         {
           vec4 bulbC = modelViewMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
-          float bulbR = max(length(position) * length(modelMatrix[0].xyz), 1e-4); // 트리를 줄여 써도 화면 크기로 잰다
+          float bulbR = max(length(position) * length(modelMatrix[0].xyz), 1e-4); // measured in screen size even when the tree is scaled down
           float grow = max(1.0, (-bulbC.z * uPx * 1.6) / bulbR);
           transformed *= grow;
           vTw /= grow * grow;
@@ -1573,7 +1573,8 @@ function createOrnamentLayer(tree, { size = 1, capacity = CAP } = {}) {
 		const u = 1 - t;
 		return out.set(0, 0, 0).addScaledVector(a, u * u * u).addScaledVector(b, 3 * u * u * t).addScaledVector(c, 3 * u * t * t).addScaledVector(d, t * t * t);
 	};
-	const now = () => performance.now() / 1e3;
+	let clock = () => performance.now() / 1e3;
+	const now = () => clock();
 	const _f = new THREE.Vector3();
 	let lit = null;
 	function update() {
@@ -1691,6 +1692,9 @@ function createOrnamentLayer(tree, { size = 1, capacity = CAP } = {}) {
 		},
 		toLocal,
 		update,
+		setClock(fn) {
+			clock = fn ?? (() => performance.now() / 1e3);
+		},
 		toJSON: () => [...byId.values()].map(serialize),
 		dispose() {
 			for (const g of geos) g.dispose();
@@ -1993,6 +1997,7 @@ var ChristmasTree = class ChristmasTree extends THREE.Group {
 	}
 	update(time) {
 		if (typeof time === "number") {
+			if (this.autoTime) this.ornaments.setClock(() => this.uniforms.uTime.value);
 			this.autoTime = false;
 			this.uniforms.uTime.value = time;
 		}
@@ -2019,7 +2024,7 @@ var ChristmasTree = class ChristmasTree extends THREE.Group {
 	}
 	static fromJSON(json, extra = {}) {
 		const data = typeof json === "string" ? JSON.parse(json) : json;
-		if (data.format && data.format !== "xmas-tree-kit") throw new Error(`xmas-tree-kit: 알 수 없는 형식 ${data.format}`);
+		if (data.format && data.format !== "xmas-tree-kit") throw new Error(`xmas-tree-kit: unknown format ${data.format}`);
 		const { format, version, ...rest } = data;
 		return new ChristmasTree({
 			...rest,
@@ -2696,7 +2701,7 @@ var XmasTreeElement = class extends HTMLElementBase {
 		if (src && !this._json) try {
 			this._json = await (await fetch(src)).json();
 		} catch (e) {
-			console.warn("xmas-tree: src 를 읽지 못했습니다", e);
+			console.warn("xmas-tree: failed to load src", e);
 		}
 		if (!this.isConnected || this.viewer) return;
 		const has = (n) => this.hasAttribute(n) && this.getAttribute(n) !== "false";
@@ -2831,4 +2836,4 @@ function defineXmasTree(tag = "xmas-tree") {
 }
 export { createBulbMaterial as C, addSnow as S, mulberry32 as T, buildDecorations as _, downloadGLB as a, TREE_DEFAULTS as b, FORMAT as c, PRESETS as d, QUALITY as f, PALETTES as g, LIGHT_COLORS as h, buildExportScene as i, FORMAT_VERSION as l, DECOR_DEFAULTS as m, defineXmasTree as n, exportGLB as o, createOrnamentLayer as p, createViewer as r, ChristmasTree as s, XmasTreeElement as t, resolve as u, ORNAMENT_SHAPES as v, createUniforms as w, buildTree as x, ornamentGeometry as y };
 
-//# sourceMappingURL=element-C1i-Mtto.js.map
+//# sourceMappingURL=element-tEuv7mmO.js.map

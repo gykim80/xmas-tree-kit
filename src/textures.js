@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mulberry32 } from './core/rng.js';
 
-// 캔버스로 그린 텍스처 모음. 외부 이미지 없이 동작하고, DOM 이 없는 환경(Node)에서는 null 을 돌려준다
+// Canvas-drawn textures. No external images needed; returns null where there's no DOM (Node)
 const HAS_DOM = typeof document !== 'undefined';
 
 function makeCanvas(w, h) {
@@ -26,7 +26,7 @@ function cached(key, fn) {
   return cache.get(key);
 }
 
-// 전나무 잔가지 한 줄기: 가운데 줄기와 앞쪽으로 비스듬히 난 바늘잎
+// A fir twig: a central stem with needles angled forward
 export function needleTexture() {
   return cached('needle', () => {
     const [c, ctx] = makeCanvas(512, 256);
@@ -65,7 +65,7 @@ export function needleTexture() {
   });
 }
 
-// 세로 결이 있는 나무껍질
+// Bark with vertical grain
 export function barkTexture() {
   return cached('bark', () => {
     const [c, ctx] = makeCanvas(256, 512);
@@ -88,7 +88,7 @@ export function barkTexture() {
   });
 }
 
-// 부드러운 원형 빛 번짐
+// Soft round glow
 export function glowTexture() {
   return cached('glow', () => {
     const [c, ctx] = makeCanvas(128, 128);
@@ -103,7 +103,7 @@ export function glowTexture() {
   });
 }
 
-// 선물 포장지 (줄무늬·물방울)
+// Gift wrap (stripes, polka dots)
 export function wrapTexture(base, accent, style) {
   return cached(`wrap-${base}-${accent}-${style}`, () => {
     const [c, ctx] = makeCanvas(128, 128);
@@ -135,7 +135,7 @@ export function wrapTexture(base, accent, style) {
   });
 }
 
-// 바늘잎 알파를 높이로 보고 노멀맵을 만든다 (잎마다 입체감)
+// Normal map from needle alpha treated as height (gives each needle depth)
 export function needleNormalTexture() {
   return cached('needleNormal', () => {
     const src = needleTexture().image;
@@ -163,7 +163,7 @@ export function needleNormalTexture() {
   });
 }
 
-// 화단 테두리 돌
+// Stone bed border
 export function stoneTexture() {
   return cached('stone', () => {
     const [c, ctx] = makeCanvas(256, 128);

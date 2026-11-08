@@ -5,7 +5,7 @@ import { ChristmasTree } from './christmas-tree.js';
 import { glowTexture } from './textures.js';
 import { downloadGLB, exportGLB } from './export.js';
 
-// 배경 분위기
+// Background moods
 const MOODS = {
   night: { top: '#0b1530', bottom: '#2a3a63', hemi: ['#9fb6e8', '#2a2233', 0.5], sun: ['#c8d6ff', 1.1], exposure: 1.0 },
   evening: { top: '#1d1840', bottom: '#d77a5c', hemi: ['#ffd2b0', '#3a2a40', 0.7], sun: ['#ffd0a0', 1.6], exposure: 1.0 },
@@ -28,7 +28,7 @@ function gradientTexture(top, bottom) {
   return t;
 }
 
-// 내리는 눈 (화면을 향한 점)
+// Falling snow (camera-facing points)
 function createSnowfall(radius, height, count = 1500) {
   const pos = new Float32Array(count * 3);
   const speed = new Float32Array(count);
@@ -57,11 +57,11 @@ function createSnowfall(radius, height, count = 1500) {
   return pts;
 }
 
-// 트리 하나를 보여 주는 화면. 웹 컴포넌트와 에디터가 이것을 쓴다.
+// A view that shows one tree. Used by the web component and the editor.
 //   const v = createViewer(document.querySelector('#app'), { preset: 'cozy', background: 'night' });
 export function createViewer(container, options = {}) {
   const {
-    background = 'night', // 'night' | 'evening' | 'day' | 'transparent' | '#색'
+    background = 'night', // 'night' | 'evening' | 'day' | 'transparent' | '#color'
     autoRotate = true,
     controls: useControls = true,
     ground = true,
@@ -69,7 +69,7 @@ export function createViewer(container, options = {}) {
     shadows = true,
     pixelRatio = Math.min(2, typeof window !== 'undefined' ? window.devicePixelRatio : 1),
     renderer: externalRenderer = null,
-    json = null, // 저장한 트리 JSON
+    json = null, // saved tree JSON
     ...treeOptions
   } = options;
 
@@ -130,7 +130,7 @@ export function createViewer(container, options = {}) {
     renderer.toneMappingExposure = mood.exposure;
   }
 
-  // 트리 크기에 맞춰 카메라·빛·바닥·눈을 다시 둔다
+  // Reposition camera, lights, ground and snow to fit the tree size
   function frame() {
     const H = tree.size;
     const fp = tree.footprint;
@@ -190,7 +190,7 @@ export function createViewer(container, options = {}) {
     controls.autoRotateSpeed = 0.6;
     controls.enablePan = false;
     controls.maxPolarAngle = Math.PI * 0.53;
-    // 만지면 자동 회전을 멈추고 6초 뒤 다시 돈다
+    // Interaction pauses auto-rotate; it resumes after 6 seconds
     let idle = 0;
     controls.addEventListener('start', () => {
       controls.autoRotate = false;
@@ -214,7 +214,7 @@ export function createViewer(container, options = {}) {
     return tree;
   }
 
-  // 크기
+  // Resize
   let w = 0;
   let h = 0;
   function resize() {
@@ -231,7 +231,7 @@ export function createViewer(container, options = {}) {
   const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(resize) : null;
   ro?.observe(container);
 
-  // 화면 밖이면 그리지 않는다
+  // Skip rendering when offscreen
   let visible = true;
   const io =
     typeof IntersectionObserver !== 'undefined'
@@ -267,17 +267,17 @@ export function createViewer(container, options = {}) {
     setTree,
     setBackground: setMood,
     frame,
-    // 매 프레임 부를 함수 등록 (지우는 함수를 돌려준다)
+    // Register a per-frame callback (returns an unsubscribe function)
     onFrame(fn) {
       hooks.add(fn);
       return () => hooks.delete(fn);
     },
-    // 화면 좌표(px) → NDC
+    // Screen coordinates (px) -> NDC
     ndc(clientX, clientY) {
       const r = renderer.domElement.getBoundingClientRect();
       return new THREE.Vector2(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
     },
-    // 지금 화면을 PNG 로
+    // Current view as PNG
     toBlob(type = 'image/png') {
       renderer.render(scene, camera);
       return new Promise((res) => renderer.domElement.toBlob(res, type));

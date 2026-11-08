@@ -1,4 +1,4 @@
-// xmas-tree-kit: 절차적 크리스마스트리를 만들고 꾸며서 three.js 장면·게임·웹사이트에 넣는다
+// xmas-tree-kit: build and decorate procedural Christmas trees for three.js scenes, games and websites
 export { ChristmasTree, FORMAT, FORMAT_VERSION, resolve as resolveOptions } from './christmas-tree.js';
 export { PRESETS, QUALITY } from './presets.js';
 export { buildTree, TREE_DEFAULTS } from './tree/tree.js';

@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import { clamp } from '../core/rng.js';
 import { ORNAMENT_SHAPES, ornamentGeometry } from './shapes.js';
 
-// 사람이 직접 거는 오너먼트 층. 모양마다 InstancedMesh 하나, 색은 인스턴스 색.
-// 자리는 { h: 높이 비율 0~1, a: 각도(라디안), r: 바깥면 대비 반지름 비율 } 로 적는다.
-// 트리 크기·모양을 바꿔도 같은 자리(바깥면 위)에 다시 붙는다
+// Layer of user-hung ornaments. One InstancedMesh per shape, colors via instance color.
+// Positions are { h: height fraction 0-1, a: angle (radians), r: radius relative to the outer surface }.
+// They reattach at the same spot on the outer surface when the tree's size or shape changes
 const CAP = 2048;
 let nextId = 1;
 
@@ -12,10 +12,10 @@ export function createOrnamentLayer(tree, { size = 1, capacity = CAP } = {}) {
   const group = new THREE.Group();
   group.name = 'ornament-layer';
   let shape = tree; // { height, envAt, crownBase }
-  const base = () => 0.2 * (shape.height / 20); // 설계 높이 20 에서 반지름 0.2
+  const base = () => 0.2 * (shape.height / 20); // radius 0.2 at design height 20
   const geos = ORNAMENT_SHAPES.map((k) => ornamentGeometry(k));
   const mat = new THREE.MeshStandardMaterial({ color: '#ffffff', metalness: 0.55, roughness: 0.28, envMapIntensity: 2.2 });
-  // 밤에도 색이 보이도록 인스턴스 색을 조금 스스로 빛나게
+  // slight emissive instance color so colors read at night
   mat.onBeforeCompile = (sh) => {
     sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += diffuseColor.rgb * 0.32;');
   };
@@ -30,7 +30,7 @@ export function createOrnamentLayer(tree, { size = 1, capacity = CAP } = {}) {
     group.add(m);
     return m;
   });
-  const slots = meshes.map(() => []); // 모양별 인스턴스 순서 → 오너먼트
+  const slots = meshes.map(() => []); // per-shape instance index -> ornament
   const byId = new Map();
   const hooks = { onAdd: null, onRemove: null, onArrive: null };
 
@@ -41,13 +41,13 @@ export function createOrnamentLayer(tree, { size = 1, capacity = CAP } = {}) {
   const _s = new THREE.Vector3();
   const _c = new THREE.Color();
 
-  // 정규화 자리 → 트리 설계 좌표
+  // Normalized position -> tree design coordinates
   function toLocal(o, out = new THREE.Vector3()) {
     const y = clamp(o.h, 0, 1) * shape.height;
     const rad = shape.envAt(y) * (o.r ?? 0.92);
     return out.set(Math.cos(o.a) * rad, y, Math.sin(o.a) * rad);
   }
-  // 트리 설계 좌표 → 정규화 자리
+  // Tree design coordinates -> normalized position
   function fromLocal(p) {
     const y = clamp(p.y, 0, shape.height);
     const env = Math.max(0.05, shape.envAt(y));
@@ -59,7 +59,7 @@ export function createOrnamentLayer(tree, { size = 1, capacity = CAP } = {}) {
     const i = slots[k].indexOf(o);
     if (i < 0) return;
     const p = at ?? toLocal(o, _p);
-    _e.set(0, Math.atan2(p.x, p.z) + spin, 0); // 바깥을 본다
+    _e.set(0, Math.atan2(p.x, p.z) + spin, 0); // face outward
     _q.setFromEuler(_e);
     const s = base() * (o.size ?? 1) * size * scale;
     _m.compose(p, _q, _s.set(s, s, s));
@@ -67,12 +67,12 @@ export function createOrnamentLayer(tree, { size = 1, capacity = CAP } = {}) {
     meshes[k].setColorAt(i, _c.set(o.color));
     meshes[k].instanceMatrix.needsUpdate = true;
     meshes[k].instanceColor.needsUpdate = true;
-    // 고르기(레이캐스트)가 쓰는 경계를 다음에 다시 재게 한다
+    // force picking (raycast) bounds to be recomputed
     meshes[k].boundingSphere = null;
     meshes[k].boundingBox = null;
   }
 
-  // 오너먼트를 건다. from(월드 좌표 Vector3)을 주면 그 자리에서 떠올라 날아가 붙는다
+  // Hang an ornament. With from (world Vector3), it rises from there and flies into place
   function add(input, { from = null, animate = true } = {}) {
     const o = {
       id: input.id ?? `o${nextId++}`,
@@ -95,7 +95,7 @@ export function createOrnamentLayer(tree, { size = 1, capacity = CAP } = {}) {
       const p0 = group.worldToLocal(from.clone());
       const out = new THREE.Vector3(to.x, 0, to.z).normalize();
       const H = shape.height;
-      // 위로 떠올랐다가 트리 바깥에서 돌아 들어와 자리에 붙는다
+      // rise up, then swing in from outside the tree and settle into place
       const p1 = p0.clone().add(new THREE.Vector3(0, H * 0.16, 0));
       const p2 = to.clone().addScaledVector(out, H * 0.15).add(new THREE.Vector3(0, H * 0.08, 0));
       const dur = clamp(1.5 + (p0.distanceTo(to) / H) * 1, 1.7, 2.8);
@@ -115,7 +115,7 @@ export function createOrnamentLayer(tree, { size = 1, capacity = CAP } = {}) {
     const k = ORNAMENT_SHAPES.indexOf(o.shape);
     const list = slots[k];
     const i = list.indexOf(o);
-    // 마지막 인스턴스를 빈자리로 옮긴다
+    // move the last instance into the freed slot
     const last = list.pop();
     if (last !== o) {
       list[i] = last;
@@ -134,7 +134,7 @@ export function createOrnamentLayer(tree, { size = 1, capacity = CAP } = {}) {
     for (const id of [...byId.keys()]) remove(id);
   }
 
-  // 트리를 다시 키운 뒤 자리 다시 잡기
+  // Re-place ornaments after the tree is regrown
   function relayout(nextShape) {
     shape = nextShape;
     for (const o of byId.values()) place(o);
@@ -144,11 +144,13 @@ export function createOrnamentLayer(tree, { size = 1, capacity = CAP } = {}) {
     const u = 1 - t;
     return out.set(0, 0, 0).addScaledVector(a, u * u * u).addScaledVector(b, 3 * u * u * t).addScaledVector(c, 3 * u * t * t).addScaledVector(d, t * t * t);
   };
-  const now = () => performance.now() / 1000;
+  // Clock: real time by default. setClock lets you drive time directly, e.g. for screen recording
+  let clock = () => performance.now() / 1000;
+  const now = () => clock();
   const _f = new THREE.Vector3();
-  let lit = null; // 강조 중인 오너먼트 (살짝 숨쉬기)
+  let lit = null; // highlighted ornament (gentle pulse)
 
-  // 날아가는 것, 막 단 것(톡 커짐), 강조 중인 것만 움직인다
+  // only animate ornaments in flight, just hung (pop), or highlighted
   function update() {
     const t1 = now();
     for (const o of byId.values()) {
@@ -180,7 +182,7 @@ export function createOrnamentLayer(tree, { size = 1, capacity = CAP } = {}) {
   const ray = new THREE.Raycaster();
   const setRay = (a, camera) => (a instanceof THREE.Raycaster ? a : (ray.setFromCamera(a, camera), ray));
 
-  // 화면 좌표(NDC Vector2)나 Raycaster 로 걸린 오너먼트 고르기
+  // Pick a hung ornament by screen coordinates (NDC Vector2) or a Raycaster
   function pick(ndcOrRay, camera) {
     const r = setRay(ndcOrRay, camera);
     const hit = r.intersectObjects(meshes.filter((m) => m.count > 0), false)[0];
@@ -188,7 +190,7 @@ export function createOrnamentLayer(tree, { size = 1, capacity = CAP } = {}) {
     return slots[meshes.indexOf(hit.object)][hit.instanceId] ?? null;
   }
 
-  // 오너먼트를 걸 자리: 트리 바깥면을 따르는 보이지 않는 회전체
+  // Hanging surface: an invisible lathe that follows the tree's outer surface
   let proxy = null;
   function buildProxy() {
     if (proxy) {
@@ -209,7 +211,7 @@ export function createOrnamentLayer(tree, { size = 1, capacity = CAP } = {}) {
   const proxyMat = new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide });
   buildProxy();
 
-  // 화면 좌표로 트리 바깥면 위 자리를 구한다. { h, a, r, point(월드) } 또는 null
+  // Find a spot on the tree's outer surface from screen coordinates. Returns { h, a, r, point (world) } or null
   function surfacePoint(ndcOrRay, camera) {
     const r = setRay(ndcOrRay, camera);
     const hit = r.intersectObject(proxy, false)[0];
@@ -218,7 +220,7 @@ export function createOrnamentLayer(tree, { size = 1, capacity = CAP } = {}) {
     return { ...fromLocal(local), r: 0.92, point: hit.point.clone() };
   }
 
-  // 자리를 고를 때 보여 줄 반투명 미리보기
+  // Translucent preview shown while picking a spot
   const ghostMat = new THREE.MeshBasicMaterial({ color: '#fff', transparent: true, opacity: 0.8, depthWrite: false });
   const ghost = new THREE.Mesh(geos[0], ghostMat);
   ghost.name = 'ornament-ghost';
@@ -263,6 +265,9 @@ export function createOrnamentLayer(tree, { size = 1, capacity = CAP } = {}) {
     },
     toLocal,
     update,
+    setClock(fn) {
+      clock = fn ?? (() => performance.now() / 1000);
+    },
     toJSON: () => [...byId.values()].map(serialize),
     dispose() {
       for (const g of geos) g.dispose();

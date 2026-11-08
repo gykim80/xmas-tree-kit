@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1080" />
+    <title>xmas-tree-kit promo</title>
+    <style>
+      html, body { margin: 0; background: #000; overflow: hidden; }
+      /* 1080×1920 frame. In preview it is scaled to fit the window */
+      #frame { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; transform-origin: 0 0; background: #0b1530; }
+      #stage { position: absolute; inset: 0; }
+      .layer { position: absolute; left: 0; right: 0; text-align: center; color: #fff; pointer-events: none; will-change: transform, opacity; }
+      .heavy { font-family: 'Arial Black', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: 900; letter-spacing: -0.02em; text-transform: uppercase; }
+      .mono { font-family: Menlo, 'SF Mono', Consolas, monospace; }
+      #kicker { top: 170px; font-size: 44px; color: #f2c14e; letter-spacing: 0.18em; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.55), 0 0 22px rgba(6, 10, 24, 0.75); }
+      #title { top: 220px; font-size: 150px; line-height: 0.95; text-shadow: 0 8px 40px rgba(0, 0, 0, 0.45); }
+      #label { bottom: 300px; font-size: 96px; line-height: 1; text-shadow: 0 6px 30px rgba(0, 0, 0, 0.5); }
+      #meta { bottom: 225px; font-size: 46px; color: #dfe7f5; }
+      #code {
+        left: 70px; right: 70px; bottom: 300px; text-align: left; font-size: 40px; line-height: 1.45;
+        background: rgba(8, 12, 26, 0.86); border: 2px solid rgba(255, 255, 255, 0.16); border-radius: 28px; padding: 40px 44px;
+        white-space: pre-wrap; word-break: break-all; color: #e6ecf8; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+      }
+      #code .k { color: #f2c14e; }
+      #code .s { color: #8fd18f; }
+      #code .c { color: #8b97b3; }
+      #beats { bottom: 120px; display: flex; justify-content: center; gap: 22px; }
+      #beats i { display: block; width: 26px; height: 26px; border-radius: 50%; background: rgba(255, 255, 255, 0.22); }
+      #beats i.on { background: #f2c14e; box-shadow: 0 0 24px #f2c14e; }
+      #shade { position: absolute; left: 0; right: 0; bottom: 0; height: 760px; background: linear-gradient(rgba(6, 10, 24, 0), rgba(6, 10, 24, 0.78) 55%, rgba(6, 10, 24, 0.92)); pointer-events: none; }
+      #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+      #bar { position: absolute; left: 0; top: 0; height: 12px; background: #f2c14e; }
+    </style>
+  </head>
+  <body>
+    <div id="frame">
+      <div id="stage"></div>
+      <div id="shade"></div>
+      <div id="kicker" class="layer heavy"></div>
+      <div id="title" class="layer heavy"></div>
+      <div id="label" class="layer heavy"></div>
+      <div id="meta" class="layer mono"></div>
+      <div id="code" class="layer mono"></div>
+      <div id="beats" class="layer"><i></i><i></i><i></i><i></i></div>
+      <div id="flash"></div>
+      <div id="bar"></div>
+    </div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

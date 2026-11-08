@@ -1,4 +1,4 @@
-// 씨앗값으로 매번 같은 결과를 내는 난수 (mulberry32)
+// Seeded deterministic random numbers (mulberry32)
 export function mulberry32(seed) {
   let a = seed >>> 0;
   return function () {

@@ -2,24 +2,24 @@ import { createViewer } from './viewer.js';
 import { ChristmasTree } from './christmas-tree.js';
 import { ORNAMENT_SHAPES } from './decor/shapes.js';
 
-// <xmas-tree> 웹 컴포넌트. 속성 이름은 model-viewer 처럼 케밥 표기, 켜고 끄는 속성은 있으면 켜짐.
+// <xmas-tree> web component. Attribute names are kebab-case like model-viewer; boolean attributes are on when present.
 //
 //   <xmas-tree preset="cozy" auto-rotate camera-controls snowfall style="height:480px"></xmas-tree>
 //   <xmas-tree src="/my-tree.json" decorate ornament-shape="star"></xmas-tree>
 //
-// 트리 속성: preset seed size quality palette light-color lights ornaments presents topper base
-//           garland beads snow glow twinkle
-// 화면 속성: background(night·evening·day·transparent·#색) auto-rotate camera-controls snowfall ground shadows
-// 꾸미기:   decorate(누르면 오너먼트를 건다) ornament-shape ornament-color
-// 이벤트:   load, ornamentadd, ornamentremove (detail.ornament, detail.tree)
+// Tree:   preset seed size quality palette light-color lights ornaments presents topper base
+//         garland beads snow glow twinkle
+// View:   background(night|evening|day|transparent|#color) auto-rotate camera-controls snowfall ground shadows
+// Decor:  decorate(click to hang an ornament) ornament-shape ornament-color
+// Events: load, ornamentadd, ornamentremove (detail.ornament, detail.tree)
 const TREE_ATTRS = ['preset', 'seed', 'size', 'quality', 'palette', 'light-color', 'lights', 'ornaments', 'presents', 'topper', 'base', 'garland', 'beads', 'snow', 'glow', 'twinkle'];
 const VIEW_ATTRS = ['background', 'auto-rotate', 'camera-controls', 'snowfall', 'ground', 'shadows'];
 const NUM = new Set(['seed', 'size', 'lights', 'ornaments', 'presents', 'snow', 'glow', 'twinkle']);
 const BOOL_TREE = new Set(['garland', 'beads']);
-const LIVE = new Set(['snow', 'glow', 'twinkle']); // 다시 만들지 않고 바로 바뀌는 값
+const LIVE = new Set(['snow', 'glow', 'twinkle']); // values applied live without a rebuild
 
 const COLORS = ['#e23b3b', '#f2c14e', '#3fa4ff', '#36c27a', '#c46cff', '#ff8fc7', '#f4f4f4'];
-// ground 속성: 없으면 켜짐, "false" 면 꺼짐, 색을 적으면 그 색 바닥
+// ground attribute: on when absent, off when "false", a color sets the ground color
 const groundAttr = (v) => (v === null || v === '' ? true : v === 'false' ? false : v);
 const camel = (s) => s.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
 const HTMLElementBase = typeof HTMLElement !== 'undefined' ? HTMLElement : class {};
@@ -46,7 +46,7 @@ export class XmasTreeElement extends HTMLElementBase {
     return this.viewer?.tree ?? null;
   }
 
-  // 트리 옵션 (속성으로 다 못 적는 값을 넘길 때). 저장한 JSON 을 그대로 넣어도 된다
+  // Tree options (for values attributes can't express). Saved JSON works as-is
   set config(v) {
     this._json = v;
     if (this.viewer) this._rebuild();
@@ -75,7 +75,7 @@ export class XmasTreeElement extends HTMLElementBase {
       try {
         this._json = await (await fetch(src)).json();
       } catch (e) {
-        console.warn('xmas-tree: src 를 읽지 못했습니다', e);
+        console.warn('xmas-tree: failed to load src', e);
       }
     }
     if (!this.isConnected || this.viewer) return;
@@ -152,7 +152,7 @@ export class XmasTreeElement extends HTMLElementBase {
     t.addEventListener('ornamentremove', fwd('ornamentremove'));
   }
 
-  // decorate 속성: 트리를 누르면 오너먼트를 걸고, 걸린 오너먼트를 누르면 떼어 낸다 (Shift+누르기)
+  // decorate attribute: click the tree to hang an ornament, Shift+click an ornament to remove it
   _bindPointer() {
     const el = this.viewer.renderer.domElement;
     let down = null;
@@ -165,7 +165,7 @@ export class XmasTreeElement extends HTMLElementBase {
     el.addEventListener('pointerleave', () => this.tree?.ornaments.preview(null));
     el.addEventListener('pointerup', (e) => {
       if (!this.hasAttribute('decorate') || !down) return;
-      // 끌어서 돌린 것은 누르기로 치지 않는다
+      // a drag to rotate doesn't count as a click
       if (Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;
       const ndc = this.viewer.ndc(e.clientX, e.clientY);
       if (e.shiftKey) {
@@ -187,7 +187,7 @@ export class XmasTreeElement extends HTMLElementBase {
     if (!this._nextShape) this._nextShape = ORNAMENT_SHAPES[Math.floor(Math.random() * ORNAMENT_SHAPES.length)];
     return this._nextShape;
   }
-  // 색을 안 정하면 누를 때마다 바꾼다 (미리보기와 건 것이 같은 색이 되게 다음 색을 미리 정해 둔다)
+  // With no color set, cycle colors per click (pick the next color ahead so the preview matches what gets hung)
   _color() {
     if (!this._next) this._next = COLORS[Math.floor(Math.random() * COLORS.length)];
     return this.getAttribute('ornament-color') || this._next;

@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>예제: 내 장면에 트리 넣기</title>
+    <title>Example: add trees to your scene</title>
     <style>
       html, body { margin: 0; height: 100%; background: #0b1530; overflow: hidden; }
     </style>
@@ -37,7 +37,7 @@
       floor.receiveShadow = true;
       scene.add(floor);
 
-      // 트리 세 그루: 프리셋과 크기만 다르게
+      // Three trees: only the preset and size differ
       const trees = [
         new ChristmasTree({ preset: 'classic', size: 3 }),
         new ChristmasTree({ preset: 'nordic', size: 2.2, quality: 'medium' }),
@@ -47,7 +47,7 @@
       trees[2].position.set(3, 0, -0.6);
       trees.forEach((t) => scene.add(t));
 
-      // 오너먼트 직접 달기: h 는 높이 비율, a 는 각도
+      // Hang ornaments by hand: h is the height ratio, a is the angle
       for (let i = 0; i < 12; i++) trees[0].addOrnament({ shape: 'star', color: '#f2c14e', h: 0.25 + i * 0.05, a: i * 0.9 });
 
       const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.05, 200);
@@ -61,7 +61,7 @@
         camera.updateProjectionMatrix();
         renderer.setSize(innerWidth, innerHeight);
       });
-      // 트리는 그릴 때 스스로 깜박이고 별을 돌린다. 따로 부를 것이 없다
+      // The tree animates itself while rendering. Nothing to call per frame
       renderer.setAnimationLoop(() => renderer.render(scene, camera));
       window.__trees = trees;
     </script>

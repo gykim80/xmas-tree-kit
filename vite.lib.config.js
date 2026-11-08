@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
 
-// npm·git 설치용: three 는 쓰는 쪽 것을 쓴다 (peerDependency)
+// for npm/git installs: three comes from the consumer (peerDependency)
 export default defineConfig({
   build: {
     outDir: 'dist',

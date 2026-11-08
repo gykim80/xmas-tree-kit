@@ -1,38 +1,38 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>트리 만들기</title>
-    <meta name="description" content="전나무를 키우고 오너먼트·전구·갈런드로 꾸며서 파일로 내려받거나 웹페이지에 넣습니다." />
+    <title>Tree Maker · xmas-tree-kit</title>
+    <meta name="description" content="Grow a fir, decorate it with ornaments, lights and garland, then download it or embed it in a web page." />
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <main id="stage" aria-label="트리 미리보기"></main>
+    <main id="stage" aria-label="Tree preview"></main>
 
     <header class="bar top">
-      <h1>트리 만들기</h1>
+      <h1>Tree Maker</h1>
       <span id="stats" class="muted" aria-live="polite"></span>
     </header>
 
-    <section class="bar bottom" aria-label="오너먼트 달기">
-      <div class="modes" role="radiogroup" aria-label="누르기 동작">
-        <button type="button" data-mode="view" role="radio" aria-checked="true">둘러보기</button>
-        <button type="button" data-mode="add" role="radio" aria-checked="false">달기</button>
-        <button type="button" data-mode="remove" role="radio" aria-checked="false">떼기</button>
+    <section class="bar bottom" aria-label="Hang ornaments">
+      <div class="modes" role="radiogroup" aria-label="Click action">
+        <button type="button" data-mode="view" role="radio" aria-checked="true">View</button>
+        <button type="button" data-mode="add" role="radio" aria-checked="false">Hang</button>
+        <button type="button" data-mode="remove" role="radio" aria-checked="false">Remove</button>
       </div>
-      <div id="shapes" class="shapes" role="radiogroup" aria-label="오너먼트 모양"></div>
-      <div id="colors" class="colors" role="radiogroup" aria-label="오너먼트 색"></div>
+      <div id="shapes" class="shapes" role="radiogroup" aria-label="Ornament shape"></div>
+      <div id="colors" class="colors" role="radiogroup" aria-label="Ornament color"></div>
       <span id="count" class="muted"></span>
     </section>
 
-    <section class="bar actions" aria-label="저장과 내보내기">
-      <button type="button" id="save">JSON 저장</button>
-      <label class="file">불러오기<input type="file" id="load" accept="application/json,.json" /></label>
-      <button type="button" id="share">링크 복사</button>
-      <button type="button" id="embed">넣기 코드 복사</button>
-      <button type="button" id="glb-light">GLB (게임용)</button>
-      <button type="button" id="glb">GLB (원본)</button>
+    <section class="bar actions" aria-label="Save and export">
+      <button type="button" id="save">Save JSON</button>
+      <label class="file">Open<input type="file" id="load" accept="application/json,.json" /></label>
+      <button type="button" id="share">Copy link</button>
+      <button type="button" id="embed">Copy embed code</button>
+      <button type="button" id="glb-light">GLB (game)</button>
+      <button type="button" id="glb">GLB (full)</button>
       <button type="button" id="png">PNG</button>
     </section>
 

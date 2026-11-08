@@ -11,13 +11,13 @@ export const FORMAT_VERSION = 1;
 const TREE_KEYS = new Set(Object.keys(TREE_DEFAULTS));
 const _v2 = new THREE.Vector2();
 
-// 크리스마스트리 한 그루. THREE.Group 이라 scene.add(tree) 로 바로 넣는다.
+// A single Christmas tree. It's a THREE.Group, so just scene.add(tree).
 //
 //   const tree = new ChristmasTree({ preset: 'cozy', size: 2.4 });
 //   scene.add(tree);
 //   tree.addOrnament({ shape: 'star', color: '#f2c14e', h: 0.6, a: 1.2 });
 //
-// 매 프레임 따로 부를 것은 없다 (전구 깜박임·별·LOD 는 그릴 때 스스로 돈다)
+// Nothing to call per frame (twinkle, star and LOD update themselves on render)
 export class ChristmasTree extends THREE.Group {
   constructor(options = {}) {
     super();
@@ -25,7 +25,7 @@ export class ChristmasTree extends THREE.Group {
     this.type = 'ChristmasTree';
     this.options = normalize(options);
     this.uniforms = options.uniforms ?? createUniforms();
-    this.root = new THREE.Group(); // 설계 단위(높이 20)로 키운 트리를 size 에 맞게 줄이는 상자
+    this.root = new THREE.Group(); // scales the tree from design units (height 20) to size
     this.root.name = 'tree-root';
     this.add(this.root);
     this.autoTime = options.autoTime ?? true;
@@ -38,12 +38,12 @@ export class ChristmasTree extends THREE.Group {
     delete this.options.ornaments;
   }
 
-  // 지금 옵션으로 실제로 쓰는 값 (프리셋 + 사용자 값 + 품질)
+  // Effective values for the current options (preset + user values + quality)
   get resolved() {
     return resolve(this.options);
   }
 
-  // 나무와 장식을 다시 만든다. 사람이 단 오너먼트는 남긴다
+  // Rebuild the tree and decorations. User-hung ornaments are kept
   generate() {
     const r = resolve(this.options);
     this._disposeTree();
@@ -66,7 +66,7 @@ export class ChristmasTree extends THREE.Group {
     return this;
   }
 
-  // 옵션 일부를 바꾼다. 바뀐 범위만 다시 만든다 (셰이더 값 → 즉시, 장식 → 장식만, 형태 → 전부)
+  // Update some options. Only rebuilds what changed (shader values: instant, decor: decor only, shape: everything)
   set(patch = {}) {
     const prev = resolve(this.options);
     const o = this.options;
@@ -91,7 +91,7 @@ export class ChristmasTree extends THREE.Group {
     return this.set({ preset: name, tree: {}, decor: {} });
   }
 
-  // 최종 높이(m)
+  // Final height (m)
   get size() {
     return this.options.size;
   }
@@ -120,7 +120,7 @@ export class ChristmasTree extends THREE.Group {
     this.uniforms.uTwinkle.value = v;
   }
 
-  // 게임 충돌용 치수 (월드 크기, 트리 자체의 scale 은 빼고)
+  // Collision dimensions for games (world size, excluding the tree's own scale)
   get footprint() {
     const s = this._scale;
     let crown = 0;
@@ -132,7 +132,7 @@ export class ChristmasTree extends THREE.Group {
     return { ...this._tree.stats, ...this._decor.stats, userOrnaments: this.ornaments.count, buildMs: Math.round(this.buildTime) };
   }
 
-  // 오너먼트 단축 메서드
+  // Ornament shortcuts
   addOrnament(o, opts) {
     return this.ornaments.add(o, opts);
   }
@@ -145,22 +145,23 @@ export class ChristmasTree extends THREE.Group {
   surfacePoint(ndcOrRay, camera) {
     return this.ornaments.surfacePoint(ndcOrRay, camera);
   }
-  // 오너먼트의 월드 좌표
+  // World position of an ornament
   ornamentPosition(o, target = new THREE.Vector3()) {
     this.ornaments.toLocal(this.ornaments.get(o.id ?? o) ?? o, target);
     return this.ornaments.group.localToWorld(target);
   }
 
-  // 시간을 직접 넘기면(초) 그 뒤로는 자동 시계를 쓰지 않는다
+  // Passing a time (seconds) disables the automatic clock from then on
   update(time) {
     if (typeof time === 'number') {
+      if (this.autoTime) this.ornaments.setClock(() => this.uniforms.uTime.value);
       this.autoTime = false;
       this.uniforms.uTime.value = time;
     }
     this.ornaments.update();
   }
 
-  // 저장: 프리셋 이름과 사용자가 바꾼 값, 단 오너먼트만 적는다
+  // Save: only the preset name, user-changed values and hung ornaments
   toJSON() {
     const o = this.options;
     const out = { format: FORMAT, version: FORMAT_VERSION, preset: o.preset, size: o.size, quality: o.quality };
@@ -173,7 +174,7 @@ export class ChristmasTree extends THREE.Group {
 
   static fromJSON(json, extra = {}) {
     const data = typeof json === 'string' ? JSON.parse(json) : json;
-    if (data.format && data.format !== FORMAT) throw new Error(`xmas-tree-kit: 알 수 없는 형식 ${data.format}`);
+    if (data.format && data.format !== FORMAT) throw new Error(`xmas-tree-kit: unknown format ${data.format}`);
     const { format, version, ...rest } = data;
     return new ChristmasTree({ ...rest, ...extra });
   }
@@ -184,7 +185,7 @@ export class ChristmasTree extends THREE.Group {
     this.root.clear();
   }
 
-  // ── 내부 ──
+  // ── internal ──
   get _scale() {
     return this.options.size / this._tree.height;
   }
@@ -225,7 +226,7 @@ export class ChristmasTree extends THREE.Group {
     }
   }
 
-  // 나무껍질이 그려질 때 한 번씩: 시계, 전구 최소 크기, 장식 LOD, 오너먼트 움직임
+  // Once per bark render: clock, minimum bulb size, decor LOD, ornament motion
   _hookFrame() {
     const bark = this._tree.barkMesh;
     bark.onBeforeRender = (renderer, _scene, camera) => {
@@ -242,7 +243,7 @@ export class ChristmasTree extends THREE.Group {
   }
 }
 
-// 옵션 정리: tree 형태 값을 위로 올려 써도 받아 준다 (seed, height 등)
+// Normalize options: tree shape values may also be given at the top level (seed, height, etc.)
 function normalize(options) {
   const { uniforms, autoTime, tree = {}, decor = {}, ...rest } = options;
   const o = {
@@ -254,7 +255,7 @@ function normalize(options) {
     ...rest,
   };
   for (const k of Object.keys(rest)) {
-    // ornaments 가 배열이면 사람이 단 오너먼트, 숫자면 자동 장식 개수
+    // ornaments as an array means user-hung ornaments; as a number, the auto-decor count
     if (k === 'ornaments' && Array.isArray(rest[k])) continue;
     if (TREE_KEYS.has(k)) {
       o.tree[k] = rest[k];
@@ -271,7 +272,7 @@ export function resolve(o) {
   const preset = PRESETS[o.preset] ?? PRESETS.classic;
   const q = QUALITY[o.quality] ?? QUALITY.high;
   const tree = { ...TREE_DEFAULTS, ...preset.tree, ...o.tree };
-  // 품질은 사용자가 직접 준 값에는 손대지 않는다
+  // quality never overrides values the user set explicitly
   const ut = o.tree ?? {};
   if (ut.whorls == null) tree.whorls = Math.max(8, Math.round(tree.whorls * q.whorls));
   if (ut.branchesPerWhorl == null) tree.branchesPerWhorl = Math.max(4, Math.round(tree.branchesPerWhorl * q.branchesPerWhorl));

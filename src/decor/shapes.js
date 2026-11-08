@@ -2,10 +2,10 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { lerp } from '../core/rng.js';
 
-// 오너먼트 모양. 모두 반지름 1 안팎, 매다는 고리 쪽이 +Y
+// Ornament shapes. All roughly radius 1, hanging loop toward +Y
 export const ORNAMENT_SHAPES = ['ball', 'drop', 'star', 'bell', 'heart', 'snowflake'];
 
-// 물방울 (아래로 길게 빠진다)
+// Drop (elongated downward)
 function dropGeometry(radial) {
   const pts = [];
   for (let i = 0; i <= 16; i++) {
@@ -69,7 +69,7 @@ function snowflakeGeometry() {
   return mergeGeometries(parts.map((p) => p.toNonIndexed()));
 }
 
-// detail: 'high' | 'low' (멀리서 쓸 저해상도)
+// detail: 'high' | 'low' (low-res for distance)
 export function ornamentGeometry(shape, detail = 'high') {
   const low = detail === 'low';
   switch (shape) {
@@ -88,5 +88,5 @@ export function ornamentGeometry(shape, detail = 'high') {
   }
 }
 
-// 꼭지(금속 마개)를 씌우는 모양
+// Shapes that get a metal cap
 export const HAS_CAP = new Set(['ball', 'drop']);

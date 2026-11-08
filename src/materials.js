@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-// 위를 향한 면에 눈을 덮는 셰이더 패치 (나무껍질·바늘잎 공용). uniforms 는 트리마다 하나 (createUniforms)
+// Shader patch that puts snow on upward-facing surfaces (shared by bark and needles). One uniforms object per tree (createUniforms)
 export function addSnow(material, uniforms, { glow = false } = {}) {
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uSnow = uniforms.uSnow;
@@ -50,7 +50,7 @@ export function addSnow(material, uniforms, { glow = false } = {}) {
   return material;
 }
 
-// 깜박이는 전구 재질: 인스턴스마다 위상이 달라 따로 반짝인다
+// Twinkling bulb material: each instance has its own phase so they blink independently
 export function createBulbMaterial(uniforms) {
   const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
   mat.onBeforeCompile = (shader) => {
@@ -73,10 +73,10 @@ export function createBulbMaterial(uniforms) {
         `#include <begin_vertex>
         float twWave = 0.5 + 0.5 * sin(uTime * uTwinkle * (0.6 + fract(aPhase * 7.13)) + aPhase * 6.2831);
         vTw = mix(1.0, 0.25 + 0.75 * twWave * twWave, step(0.001, uTwinkle));
-        // 멀리 있는 전구가 1픽셀보다 작아지면 깜박이며 번진다: 최소 크기를 지키고 밝기는 면적만큼 줄인다
+        // Distant bulbs smaller than a pixel flicker: clamp to a minimum size and dim by the area ratio
         {
           vec4 bulbC = modelViewMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
-          float bulbR = max(length(position) * length(modelMatrix[0].xyz), 1e-4); // 트리를 줄여 써도 화면 크기로 잰다
+          float bulbR = max(length(position) * length(modelMatrix[0].xyz), 1e-4); // measured in screen size even when the tree is scaled down
           float grow = max(1.0, (-bulbC.z * uPx * 1.6) / bulbR);
           transformed *= grow;
           vTw /= grow * grow;
@@ -90,20 +90,20 @@ export function createBulbMaterial(uniforms) {
   return mat;
 }
 
-// 인스턴스마다 깜박임 위상을 넣는다
+// Assign a twinkle phase per instance
 export function setBulbPhases(mesh, rand) {
   const phases = new Float32Array(mesh.count);
   for (let i = 0; i < phases.length; i++) phases[i] = rand();
   mesh.geometry.setAttribute('aPhase', new THREE.InstancedBufferAttribute(phases, 1));
 }
 
-// 트리 하나가 쓰는 셰이더 값. 여러 트리가 같은 값을 쓰려면 같은 객체를 넘긴다
+// Shader values for one tree. Pass the same object to share them across trees
 export function createUniforms({ snow = 0.5, glow = 3, twinkle = 2.2 } = {}) {
   return {
     uTime: { value: 0 },
     uSnow: { value: snow },
     uTwinkle: { value: twinkle },
     uGlow: { value: glow },
-    uPx: { value: 0.001 }, // 화면 한 픽셀이 거리 1 에서 덮는 길이 (전구 최소 크기)
+    uPx: { value: 0.001 }, // size of one screen pixel at distance 1 (minimum bulb size)
   };
 }

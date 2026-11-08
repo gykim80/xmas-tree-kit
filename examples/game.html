@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>예제: 게임 속 트리</title>
+    <title>Example: a tree in a game</title>
     <style>
       html, body { margin: 0; height: 100%; overflow: hidden; background: #0b1530; font-family: system-ui, 'Apple SD Gothic Neo', sans-serif; }
       canvas { display: block; touch-action: none; }
@@ -13,7 +13,7 @@
     </style>
   </head>
   <body>
-    <div class="hud" id="hud">W A S D 이동 · 끌어서 둘러보기 · 가운데 트리를 눌러 오너먼트 달기<br /><span id="score">단 오너먼트 0개</span></div>
+    <div class="hud" id="hud">W A S D to move · drag to look · click the big tree to hang an ornament<br /><span id="score">Ornaments hung: 0</span></div>
     <div class="aim" id="aim"></div>
     <script type="module">
       import * as THREE from 'three';
@@ -45,7 +45,7 @@
       ground.receiveShadow = true;
       scene.add(ground);
 
-      // 가운데 큰 트리 + 둘레 숲 (숲은 낮은 품질·점광원 없음)
+      // Big tree in the middle plus a forest around it (low quality, no point lights)
       const main = new ChristmasTree({ preset: 'classic', size: 6, quality: 'high' });
       scene.add(main);
       const obstacles = [{ x: 0, z: 0, r: main.footprint.trunkRadius + 0.3 }];
@@ -60,7 +60,7 @@
         obstacles.push({ x: t.position.x, z: t.position.z, r: t.footprint.trunkRadius + 0.3 });
       }
 
-      // 1인칭 이동
+      // First-person movement
       const camera = new THREE.PerspectiveCamera(65, innerWidth / innerHeight, 0.05, 150);
       const player = new THREE.Vector3(0, 1.65, 9);
       let yaw = 0;
@@ -88,7 +88,7 @@
         if (drag && drag.moved < 8) hang();
         drag = null;
       });
-      // 화면 가운데가 가리키는 트리 자리에 단다. 손에서 날아가 붙는다
+      // Hang at the spot under the crosshair. It flies from the hand to the tree
       function hang() {
         ray.setFromCamera(center, camera);
         ray.far = 9;
@@ -99,7 +99,7 @@
           { shape: SHAPES[main.ornaments.count % SHAPES.length], color: COLORS[main.ornaments.count % COLORS.length], h: spot.h, a: spot.a },
           { from: hand }
         );
-        document.querySelector('#score').textContent = `단 오너먼트 ${main.ornaments.count}개`;
+        document.querySelector('#score').textContent = `Ornaments hung: ${main.ornaments.count}`;
       }
 
       const fwd = new THREE.Vector3();
@@ -115,7 +115,7 @@
         if (keys.has('KeyS')) player.addScaledVector(fwd, -speed);
         if (keys.has('KeyD')) player.addScaledVector(right, speed);
         if (keys.has('KeyA')) player.addScaledVector(right, -speed);
-        // 줄기에 부딪히면 밀어낸다
+        // Push the player out of tree trunks
         for (const o of obstacles) {
           const dx = player.x - o.x;
           const dz = player.z - o.z;

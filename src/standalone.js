@@ -1,4 +1,4 @@
-// <script type="module" src=".../xmas-tree.standalone.js"> 한 줄로 쓰는 판. three 를 함께 묶고 <xmas-tree> 를 바로 등록한다
+// <script type="module" src=".../xmas-tree.standalone.js"> single-tag build. Bundles three and registers <xmas-tree> right away
 import { defineXmasTree } from './element.js';
 export * from './index.js';
 defineXmasTree();

@@ -5,25 +5,25 @@ import { glowTexture, wrapTexture, stoneTexture } from '../textures.js';
 import { createBulbMaterial, setBulbPhases } from '../materials.js';
 import { ornamentGeometry, HAS_CAP } from './shapes.js';
 
-// 자동 장식 기본값
+// Auto-decoration defaults
 export const DECOR_DEFAULTS = {
-  ornaments: 620, // 자동으로 거는 오너먼트 수
+  ornaments: 620, // number of auto-hung ornaments
   ornamentSize: 1.0,
-  ornamentShapes: { ball: 0.78, drop: 0.22 }, // 모양별 비율
-  palette: 'classic', // 이름 또는 색 배열
-  lights: 2200, // 전구 수
-  lightColor: 'warm', // 이름 또는 [r,g,b] 배열의 배열 (0~1)
-  trunkLights: true, // 드러난 밑동에 감는 전구 줄
-  garland: true, // 금박 갈런드
+  ornamentShapes: { ball: 0.78, drop: 0.22 }, // ratio per shape
+  palette: 'classic', // name or array of colors
+  lights: 2200, // number of lights
+  lightColor: 'warm', // name or array of [r,g,b] arrays (0-1)
+  trunkLights: true, // light string wound around the bare trunk
+  garland: true, // tinsel garland
   garlandColor: '#f0c25a',
-  beads: true, // 구슬 줄
+  beads: true, // bead strings
   beadColors: ['#f3f0ea', '#b0141e'],
   topper: 'star', // 'star' | 'none'
   topperColor: '#ffd76a',
-  presents: 26, // 선물 상자 수
-  base: 'bed', // 'bed'(돌 화단) | 'skirt'(트리 치마) | 'none'
+  presents: 26, // number of presents
+  base: 'bed', // 'bed' (stone bed) | 'skirt' (tree skirt) | 'none'
   skirtColor: '#9c1018',
-  glowLights: true, // 별·안쪽 점광원 (게임에서 트리를 여러 그루 둘 때는 끄는 편이 싸다)
+  glowLights: true, // star and inner point lights (turn off for cheaper rendering with many trees in a game)
 };
 
 export const PALETTES = {
@@ -48,7 +48,7 @@ const resolveLights = (l) => {
   return LIGHT_COLORS[l] ?? LIGHT_COLORS.warm;
 };
 
-// 서로 너무 붙지 않게 후보 중에서 고른다
+// Pick from candidates while keeping a minimum spacing
 function pickSpread(cands, count, minDist, rand) {
   const pool = cands.slice();
   for (let i = pool.length - 1; i > 0; i--) {
@@ -64,7 +64,7 @@ function pickSpread(cands, count, minDist, rand) {
   return out;
 }
 
-// 앞뒤가 볼록한 다면체 별 (어느 각도에서도 별 모양이 보인다)
+// Polyhedral star bulging front and back (reads as a star from any angle)
 function topperGeometry() {
   const pos = [];
   const ring = [];
@@ -116,13 +116,13 @@ function buildPresent(rand, w, h, d, base, accent, style) {
   return g;
 }
 
-// 밑동 둘레: 돌 화단(테두리·눈 둔덕·말뚝·리본 줄). 바닥 높이 함수를 돌려준다
+// Trunk surround: stone bed (border, snow mound, posts, ribbon). Returns a ground height function
 function buildBed(tree, group, keep) {
   const bedR = Math.max(3.2, tree.trunkRadius * 5.5);
   const curbGeo = keep(
     new THREE.LatheGeometry(
       [
-        // 바깥 아래에서 시작해 안쪽으로 돌아야 면이 바깥을 향한다
+        // start at the outer bottom and wind inward so faces point outward
         new THREE.Vector2(bedR + 0.3, -0.05),
         new THREE.Vector2(bedR + 0.3, 0.36),
         new THREE.Vector2(bedR + 0.22, 0.44),
@@ -149,7 +149,7 @@ function buildBed(tree, group, keep) {
   capSnow.rotation.x = Math.PI / 2;
   capSnow.position.y = 0.46;
   capSnow.receiveShadow = true;
-  // 화단 안쪽 눈 둔덕: 밑동 쪽이 살짝 솟는다
+  // Snow mound inside the bed: slightly raised toward the trunk
   const r0 = tree.trunkRadius * 0.9;
   const moundPts = [];
   for (let i = 0; i <= 12; i++) {
@@ -161,7 +161,7 @@ function buildBed(tree, group, keep) {
     keep(new THREE.MeshStandardMaterial({ color: '#e4ebf5', roughness: 0.9, side: THREE.DoubleSide }))
   );
   mound.receiveShadow = true;
-  // 테두리를 따라 낮은 쇠 말뚝과 붉은 리본 줄
+  // Low iron posts and a red ribbon along the border
   const posts = 16;
   const m = new THREE.Matrix4();
   const postMesh = new THREE.InstancedMesh(
@@ -204,13 +204,13 @@ function buildBed(tree, group, keep) {
   };
 }
 
-// 트리 치마: 밑동을 둘러 바닥에 펼친 천. 가장자리에 흰 털 테두리
+// Tree skirt: cloth spread on the floor around the trunk, with white fur trim
 function buildSkirt(tree, group, keep, color) {
   const R = Math.max(3.4, tree.trunkRadius * 6);
   const pts = [];
   for (let i = 0; i <= 16; i++) {
     const u = i / 16;
-    // 밑동 쪽이 살짝 솟고 바깥으로 갈수록 바닥에 붙는다. 주름은 아래 물결로
+    // slightly raised near the trunk, flat toward the edge. Folds come from the wave below
     pts.push(new THREE.Vector2(lerp(tree.trunkRadius * 0.95, R, u), lerp(0.22, 0.03, Math.pow(u, 0.5))));
   }
   const geo = keep(new THREE.LatheGeometry(pts, 96));
@@ -240,7 +240,7 @@ export function buildDecorations(tree, input, uniforms) {
   const params = { ...DECOR_DEFAULTS, ...input };
   const rand = mulberry32(tree.params.seed * 31 + 7);
   const H = tree.height;
-  const K = H / 7.2; // 기준 높이 대비 배율
+  const K = H / 7.2; // scale relative to the reference height
   const group = new THREE.Group();
   group.name = 'decor';
   const disposables = [];
@@ -249,7 +249,7 @@ export function buildDecorations(tree, input, uniforms) {
   const q = new THREE.Quaternion();
   const col = new THREE.Color();
 
-  // 1) 오너먼트
+  // 1) Ornaments
   const palette = resolvePalette(params.palette);
   const shapeW = Object.entries(params.ornamentShapes ?? { ball: 1 }).filter(([, w]) => w > 0);
   const shapeSum = shapeW.reduce((s, [, w]) => s + w, 0) || 1;
@@ -258,7 +258,7 @@ export function buildDecorations(tree, input, uniforms) {
     for (const [k, w] of shapeW) if ((r -= w) <= 0) return k;
     return shapeW[0]?.[0] ?? 'ball';
   };
-  // 맨 아래 가지 끝에 오너먼트가 띠처럼 몰리지 않게 아래쪽 후보를 솎는다
+  // thin out low candidates so ornaments don't band along the bottom branch tips
   const cands = tree.anchors.filter((a) => rand() < clamp((a.p.y - tree.crownBase) / 2.5, 0.2, 1));
   const spots = pickSpread(cands, params.ornaments, 0.32 * Math.sqrt(K), rand);
   const byShape = new Map();
@@ -282,11 +282,11 @@ export function buildDecorations(tree, input, uniforms) {
     const flat = !HAS_CAP.has(shape) && shape !== 'bell';
     list.forEach((s, i) => {
       const size = lerp(0.12, 0.07, clamp(s.p.y / H, 0, 1)) * Math.pow(K, 0.75) * (0.85 + rand() * 0.3) * params.ornamentSize * (flat ? 0.95 : 1);
-      // 가지 끝에서 조금 아래로 늘어진다
+      // hang slightly below the branch tip
       const pos = s.p.clone();
       pos.y -= size * 1.4 + 0.03 * K;
       pos.addScaledVector(new THREE.Vector3(s.p.x, 0, s.p.z).normalize(), 0.04);
-      // 납작한 모양은 바깥을 보게, 둥근 모양은 아무 쪽으로
+      // flat shapes face outward, round ones any direction
       q.setFromAxisAngle(up, flat ? Math.atan2(s.p.x, s.p.z) + (rand() - 0.5) * 0.6 : rand() * 6.28);
       m.compose(pos, q, new THREE.Vector3(size, size, size));
       mesh.setMatrixAt(i, m);
@@ -304,10 +304,10 @@ export function buildDecorations(tree, input, uniforms) {
   group.add(capMesh);
   keep(capMesh);
 
-  // 2) 전구: 잔가지 끝 바깥쪽
+  // 2) Lights: outer twig tips
   const lightCols = resolveLights(params.lightColor);
   const lightSpots = pickSpread(tree.tips.filter((t) => t.p.y > 0.4 * K), params.lights, 0.2 * Math.sqrt(K), rand);
-  // 드러난 밑동에는 전구 줄을 나선으로 감는다
+  // spiral a light string around the bare trunk
   if (params.lights > 0 && params.trunkLights) {
     const top = tree.crownBase + 0.4;
     const n = 150;
@@ -334,7 +334,7 @@ export function buildDecorations(tree, input, uniforms) {
   group.add(bulbs);
   keep(bulbs);
 
-  // 3) 갈런드: 외곽을 나선으로 감고 고정점 사이가 늘어진다
+  // 3) Garland: spirals around the outside and sags between anchor points
   const helix = (phase, turns, inset, sag) => {
     const pts = [];
     const top = H * 0.86;
@@ -359,7 +359,7 @@ export function buildDecorations(tree, input, uniforms) {
     );
     core.name = 'garland';
     group.add(core);
-    // 줄을 따라 얇은 금박 가닥을 사방으로 붙여 복슬복슬하게
+    // attach thin tinsel strands all around the rope for a fluffy look
     const n = Math.floor(curve.getLength() / (0.008 * K));
     const tinselMat = keep(
       new THREE.MeshStandardMaterial({ color: gc, metalness: 1, roughness: 0.42, side: THREE.DoubleSide, emissive: gc.clone().multiplyScalar(0.25), emissiveIntensity: 0.6 })
@@ -399,10 +399,10 @@ export function buildDecorations(tree, input, uniforms) {
     keep(beads);
   }
 
-  // 점광원: [빛, 설계 단위 기준 세기]. 트리를 줄여 쓰면 세기·거리도 같이 줄인다 (lightScale)
+  // Point lights: [light, intensity in design units]. Intensity and distance scale down with the tree (lightScale)
   const inner = [];
 
-  // 4) 꼭대기 별
+  // 4) Topper star
   let star = null;
   let starMesh = null;
   let halo = null;
@@ -428,7 +428,7 @@ export function buildDecorations(tree, input, uniforms) {
     group.add(star);
   }
 
-  // 5) 안쪽에서 비추는 따뜻한 빛 (전구 빛이 바닥에 번지는 느낌)
+  // 5) Warm inner light (bulb glow spilling onto the ground)
   if (params.glowLights && params.lights > 0) {
     const glowCol = lightCols.length > 1 ? '#ffd2a0' : new THREE.Color(...lightCols[0]).getStyle();
     const a = new THREE.PointLight(glowCol, 9 * K * K, 9 * K, 2);
@@ -439,12 +439,12 @@ export function buildDecorations(tree, input, uniforms) {
     group.add(a, b);
   }
 
-  // 6) 밑동 둘레
+  // 6) Trunk surround
   let ground = { radius: Math.max(3, tree.trunkRadius * 5), floor: () => 0 };
   if (params.base === 'bed') ground = buildBed(tree, group, keep);
   else if (params.base === 'skirt') ground = buildSkirt(tree, group, keep, params.skirtColor);
 
-  // 7) 선물 상자
+  // 7) Presents
   const wraps = [
     ['#b3121f', '#f4ead8'],
     ['#14532d', '#e8c25a'],
@@ -466,7 +466,7 @@ export function buildDecorations(tree, input, uniforms) {
     p.position.set(Math.cos(a) * r, y0, Math.sin(a) * r);
     p.rotation.y = rand() * Math.PI;
     presents.add(p);
-    // 가끔 작은 상자를 위에 하나 더
+    // sometimes stack a small box on top
     if (rand() < 0.3) {
       const [b2, a2] = wraps[Math.floor(rand() * wraps.length)];
       const small = buildPresent(rand, w * 0.6, h * 0.6, d * 0.6, b2, a2, Math.floor(rand() * 3));
@@ -475,7 +475,7 @@ export function buildDecorations(tree, input, uniforms) {
       presents.add(small);
     }
   }
-  // 포장지·리본 종류별로 한 메시로 합친다 (상자마다 메시 5개 → 종류 수만큼). 포장지 반복은 UV 에 굽는다
+  // Merge into one mesh per wrap/ribbon type (5 meshes per box -> one per type). Wrap tiling is baked into UVs
   presents.updateMatrixWorld(true);
   const buckets = new Map();
   const freed = new Set();
@@ -491,7 +491,7 @@ export function buildDecorations(tree, input, uniforms) {
     if (!buckets.has(key)) buckets.set(key, { geos: [], mat: o.material });
     const b = buckets.get(key);
     b.geos.push(g.index ? g.toNonIndexed() : g);
-    // 합쳐지면 쓰이지 않는 재질과 포장지 텍스처 복제본은 바로 해제
+    // dispose materials and wrap texture clones left unused after merging
     if (o.material !== b.mat && !freed.has(o.material)) {
       freed.add(o.material);
       o.material.map?.dispose();
@@ -513,8 +513,8 @@ export function buildDecorations(tree, input, uniforms) {
     for (const g of geos) g.dispose();
   }
 
-  // 그릴 때마다: 오너먼트 LOD, 별이 카메라를 보며 흔들림, 안쪽 빛 깜박임.
-  // 거리는 트리 설계 단위로 잰다 (트리를 줄여 써도 같은 화면 크기에서 바뀐다)
+  // Per render: ornament LOD, star sway toward the camera, inner light flicker.
+  // Distance is in tree design units (switches at the same screen size even when scaled down)
   const baseStar = star?.position.y ?? 0;
   const _c = new THREE.Vector3();
   const _inv = new THREE.Matrix4();
@@ -543,7 +543,7 @@ export function buildDecorations(tree, input, uniforms) {
 
   for (const [l] of inner) l.userData.baseDistance = l.distance;
   const api = {
-    lightScale: 1, // 월드 크기 / 설계 크기
+    lightScale: 1, // world size / design size
     group,
     params,
     bulbs,

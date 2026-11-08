@@ -1,4 +1,4 @@
-// scripts/check.mjs 가 브라우저 안에서 불러 쓰는 점검 도우미 (개발 서버가 모듈 경로를 풀어 준다)
+// scripts/check.mjs check helpers loaded in the browser by scripts/check.mjs (the dev server resolves module paths)
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { ChristmasTree, exportGLB } from '../src/index.js';

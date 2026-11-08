@@ -1,5 +1,5 @@
-// 헤드리스 브라우저 점검: 페이지마다 화면을 찍고, 콘솔 오류·오너먼트 달기·GLB 내보내기를 확인한다
-// node scripts/check.mjs  (개발 서버를 스스로 띄운다. tmp/shots/ 에 스크린샷)
+// Headless browser check: screenshots each page and verifies console errors, ornament hanging and GLB export
+// node scripts/check.mjs  (starts its own dev server; screenshots go to tmp/shots/)
 import { chromium } from 'playwright';
 import { createServer } from 'vite';
 import { mkdirSync } from 'node:fs';
@@ -25,7 +25,7 @@ async function open(path, { w = 1280, h = 800 } = {}) {
   return { page, errors };
 }
 
-// 1) 에디터
+// 1) Editor
 {
   const { page, errors } = await open('/editor/');
   await page.waitForFunction(() => window.__viewer?.tree, null, { timeout: 30000 });
@@ -36,9 +36,9 @@ async function open(path, { w = 1280, h = 800 } = {}) {
   for (const [x, y] of [[640, 380], [600, 450], [680, 300]]) await page.mouse.click(x, y);
   await page.waitForTimeout(800);
   const after = await page.evaluate(() => window.__viewer.tree.ornaments.count);
-  ok('editor: 눌러서 오너먼트 달기', after === before + 3, `${before} → ${after}`);
+  ok('editor: click to hang ornaments', after === before + 3, `${before} → ${after}`);
   await page.screenshot({ path: 'tmp/shots/editor-ornaments.png' });
-  // 떼기
+  // Remove
   await page.click('[data-mode="remove"]');
   const pos = await page.evaluate(() => {
     const v = window.__viewer;
@@ -49,21 +49,21 @@ async function open(path, { w = 1280, h = 800 } = {}) {
   });
   await page.mouse.click(pos[0], pos[1]);
   const afterRemove = await page.evaluate(() => window.__viewer.tree.ornaments.count);
-  ok('editor: 눌러서 떼기', afterRemove === after - 1, `${after} → ${afterRemove}`);
-  // 프리셋 바꾸기 → 단 오너먼트 유지
+  ok('editor: click to remove', afterRemove === after - 1, `${after} → ${afterRemove}`);
+  // Change preset -> hung ornaments kept
   const kept = await page.evaluate(() => {
     const t = window.__viewer.tree;
     t.loadPreset('nordic');
     return t.ornaments.count;
   });
-  ok('editor: 프리셋을 바꿔도 단 오너먼트 유지', kept === afterRemove);
+  ok('editor: hung ornaments survive a preset change', kept === afterRemove);
   await page.waitForTimeout(600);
   await page.screenshot({ path: 'tmp/shots/editor-nordic.png' });
-  // GLB 내보내기 → 다시 읽기
+  // GLB export -> reload
   const glb = await page.evaluate(async () => (await import('/test/browser-probe.js')).probeGLB(window.__viewer.tree));
-  ok('editor: GLB 내보내기(구움) 후 다시 읽기', glb.meshes > 5 && glb.height > 2 && glb.height < 3, `${(glb.baked / 1e6).toFixed(1)}MB, 메시 ${glb.meshes}, 높이 ${glb.height.toFixed(2)}m`);
-  ok('editor: GLB 인스턴싱판이 더 작다', glb.inst < glb.baked, `${(glb.inst / 1e6).toFixed(2)}MB`);
-  // 공유 링크 → 같은 트리
+  ok('editor: GLB export (baked) and reload', glb.meshes > 5 && glb.height > 2 && glb.height < 3, `${(glb.baked / 1e6).toFixed(1)}MB, meshes ${glb.meshes}, height ${glb.height.toFixed(2)}m`);
+  ok('editor: instanced GLB is smaller', glb.inst < glb.baked, `${(glb.inst / 1e6).toFixed(2)}MB`);
+  // Share link -> same tree
   const same = await page.evaluate(() => JSON.stringify(window.__viewer.tree.toJSON()));
   await page.click('#share').catch(() => {});
   const url = page.url();
@@ -71,57 +71,57 @@ async function open(path, { w = 1280, h = 800 } = {}) {
   await p2.goto(url);
   await p2.waitForFunction(() => window.__viewer?.tree, null, { timeout: 30000 });
   const restored = await p2.evaluate(() => JSON.stringify(window.__viewer.tree.toJSON()));
-  ok('editor: 공유 링크로 같은 트리 복원', restored === same && url.includes('#t='));
+  ok('editor: share link restores the same tree', restored === same && url.includes('#t='));
   await p2.close();
-  ok('editor: 콘솔 오류 없음', errors.length === 0, errors.slice(0, 3).join(' | '));
+  ok('editor: no console errors', errors.length === 0, errors.slice(0, 3).join(' | '));
   await page.close();
 }
 
-// 2) 웹 컴포넌트
+// 2) Web component
 {
   const { page, errors } = await open('/examples/embed.html', { w: 1200, h: 1400 });
   await page.waitForFunction(() => [...document.querySelectorAll('xmas-tree')].every((e) => e.tree), null, { timeout: 40000 });
   await page.waitForTimeout(1500);
   await page.screenshot({ path: 'tmp/shots/embed.png', fullPage: true });
   const n = await page.evaluate(() => document.querySelectorAll('xmas-tree').length);
-  ok('embed: <xmas-tree> 4개 모두 뜸', n === 4);
+  ok('embed: all 4 <xmas-tree> elements load', n === 4);
   const wall = await page.$('#wall');
   await wall.scrollIntoViewIfNeeded();
   const box = await wall.boundingBox();
   await page.mouse.click(box.x + box.width / 2, box.y + box.height * 0.5);
   await page.waitForTimeout(400);
   const log = await page.textContent('#log');
-  ok('embed: decorate 로 달기와 ornamentadd 이벤트', /1개/.test(log), log);
-  // 속성 바꾸면 바로 반영
+  ok('embed: decorate hangs an ornament and fires ornamentadd', /hung: 1\b/.test(log), log);
+  // Attribute changes apply immediately
   const changed = await page.evaluate(async () => {
     const el = document.querySelector('xmas-tree');
     el.setAttribute('snow', '1');
     el.setAttribute('palette', 'candy');
     return { snow: el.tree.snow, palette: el.tree.resolved.decor.palette };
   });
-  ok('embed: 속성 변경 반영', changed.snow === 1 && changed.palette === 'candy');
-  ok('embed: 콘솔 오류 없음', errors.length === 0, errors.slice(0, 3).join(' | '));
+  ok('embed: attribute changes apply', changed.snow === 1 && changed.palette === 'candy');
+  ok('embed: no console errors', errors.length === 0, errors.slice(0, 3).join(' | '));
   await page.close();
 }
 
-// 3) 내 장면 예제
+// 3) Own-scene example
 {
   const { page, errors } = await open('/examples/basic.html');
   await page.waitForFunction(() => window.__trees, null, { timeout: 30000 });
   await page.waitForTimeout(1500);
   await page.screenshot({ path: 'tmp/shots/basic.png' });
   const n = await page.evaluate(() => window.__trees[0].ornaments.count);
-  ok('basic: 트리 세 그루와 별 12개', n === 12);
-  ok('basic: 콘솔 오류 없음', errors.length === 0, errors.slice(0, 3).join(' | '));
+  ok('basic: three trees and 12 stars', n === 12);
+  ok('basic: no console errors', errors.length === 0, errors.slice(0, 3).join(' | '));
   await page.close();
 }
 
-// 4) 게임 예제
+// 4) Game example
 {
   const { page, errors } = await open('/examples/game.html');
   await page.waitForFunction(() => window.__game, null, { timeout: 40000 });
   await page.waitForTimeout(800);
-  // 트리 앞으로 걸어가 단다
+  // Walk up to the tree and hang one
   await page.keyboard.down('KeyW');
   await page.waitForTimeout(1300);
   await page.keyboard.up('KeyW');
@@ -130,19 +130,19 @@ async function open(path, { w = 1280, h = 800 } = {}) {
   await page.waitForTimeout(2600);
   await page.screenshot({ path: 'tmp/shots/game.png' });
   const g = await page.evaluate(() => ({ n: window.__game.main.ornaments.count, z: window.__game.player.z }));
-  ok('game: 걸어가서 오너먼트 달기', g.n === 2, `단 개수 ${g.n}, z=${g.z.toFixed(2)}`);
-  // 줄기를 뚫고 지나가지 못한다
+  ok('game: walk up and hang an ornament', g.n === 2, `hung ${g.n}, z=${g.z.toFixed(2)}`);
+  // Can't walk through the trunk
   await page.evaluate(() => window.__game.player.set(0, 1.65, 3));
   await page.keyboard.down('KeyW');
   await page.waitForTimeout(1600);
   await page.keyboard.up('KeyW');
   const z = await page.evaluate(() => Math.hypot(window.__game.player.x, window.__game.player.z));
-  ok('game: 줄기 충돌', z >= 0.55, `중심까지 ${z.toFixed(2)}m`);
-  ok('game: 콘솔 오류 없음', errors.length === 0, errors.slice(0, 3).join(' | '));
+  ok('game: trunk collision', z >= 0.55, `distance to center ${z.toFixed(2)}m`);
+  ok('game: no console errors', errors.length === 0, errors.slice(0, 3).join(' | '));
   await page.close();
 }
 
-// 5) 첫 화면 + 모바일 폭
+// 5) Landing page + mobile width
 {
   const { page, errors } = await open('/', { w: 390, h: 844 });
   await page.waitForFunction(() => document.querySelector('xmas-tree')?.tree, null, { timeout: 30000 });
@@ -152,7 +152,7 @@ async function open(path, { w = 1280, h = 800 } = {}) {
   await ed.waitForFunction(() => window.__viewer?.tree, null, { timeout: 30000 });
   await ed.waitForTimeout(1200);
   await ed.screenshot({ path: 'tmp/shots/editor-mobile.png' });
-  ok('index: 콘솔 오류 없음', errors.length === 0, errors.slice(0, 3).join(' | '));
+  ok('index: no console errors', errors.length === 0, errors.slice(0, 3).join(' | '));
   await page.close();
   await ed.close();
 }
@@ -160,5 +160,5 @@ async function open(path, { w = 1280, h = 800 } = {}) {
 await browser.close();
 await server.close();
 console.log(results.join('\n'));
-console.log(failed ? `\n${failed}개 실패` : '\n모두 통과');
+console.log(failed ? `\n${failed} failed` : '\nall passed');
 process.exit(failed ? 1 : 0);

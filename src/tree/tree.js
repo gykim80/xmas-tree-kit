@@ -5,28 +5,28 @@ import { needleTexture, needleNormalTexture, barkTexture } from '../textures.js'
 import { addSnow } from '../materials.js';
 import { prepassMaterial, equalDepthMaterial, attachPrepass } from '../prepass.js';
 
-// 트리 형태 기본값. 모든 형태는 seed 로 재현된다.
-// 길이 단위는 '설계 단위'다. 높이 20 짜리로 키운 뒤 ChristmasTree 의 size 로 원하는 미터 크기로 줄인다
+// Default tree shape. Every shape is reproducible from seed.
+// Lengths are in design units: grown at height 20, then scaled to meters by ChristmasTree's size
 export const TREE_DEFAULTS = {
   seed: 1225,
-  height: 20, // 설계 높이. 바꾸면 가지 길이와 잎 크기는 그대로라 비율이 달라진다
+  height: 20, // design height. Branch length and needle size stay fixed, so changing it alters proportions
   trunkRadius: 0.62,
-  clearTrunk: 3.2, // 가지 없이 드러나는 밑동 높이
-  whorls: 56, // 가지 층 수
-  branchesPerWhorl: 10, // 층마다 가지 수
-  spread: 7.0, // 맨 아래 가지 길이
-  droop: 0.36, // 가지 처짐
-  upturn: 0.55, // 가지 끝 들림
-  twigs: 1.0, // 잔가지 밀도
-  needles: 1.0, // 바늘잎 밀도
+  clearTrunk: 3.2, // height of bare trunk below the branches
+  whorls: 56, // number of whorls
+  branchesPerWhorl: 10, // branches per whorl
+  spread: 7.0, // length of the lowest branches
+  droop: 0.36, // branch droop
+  upturn: 0.55, // branch tip upturn
+  twigs: 1.0, // twig density
+  needles: 1.0, // needle density
   needleSize: 1.55,
-  segLen: 0.34, // 가지 마디 길이
+  segLen: 0.34, // branch segment length
 };
 
 const UP = new THREE.Vector3(0, 1, 0);
 const X_AXIS = new THREE.Vector3(1, 0, 0);
 
-// 경로를 따라 굵기가 줄어드는 관을 만든다 (평행 이동 프레임)
+// Build a tapering tube along a path (parallel transport frames)
 class TubeBuilder {
   constructor() {
     this.pos = [];
@@ -91,7 +91,7 @@ class TubeBuilder {
   }
 }
 
-// 바늘잎 묶음: 수평 판(+Y 법선)과 수직 판을 엇갈려 부피를 준다
+// Needle cluster: crossed horizontal (+Y normal) and vertical cards for volume
 function needleClusterGeometry() {
   const a = new THREE.PlaneGeometry(1, 0.5);
   a.rotateX(-Math.PI / 2);
@@ -101,7 +101,7 @@ function needleClusterGeometry() {
   return mergeGeometries([a, b]);
 }
 
-// 트리 한 그루를 키운다
+// Grow one tree
 // opts: { barkMap, needleColor, barkColor, prepass, lod }
 export function buildTree(input = {}, sharedUniforms, opts = {}) {
   const params = { ...TREE_DEFAULTS, ...input };
@@ -111,8 +111,8 @@ export function buildTree(input = {}, sharedUniforms, opts = {}) {
 
   const bark = new TubeBuilder();
   const clusters = []; // { p, d, s, depth }
-  const anchors = []; // 장식을 걸 자리: 가지 바깥쪽
-  const tips = []; // 전구 자리: 잔가지 끝
+  const anchors = []; // decoration anchors: outer branch points
+  const tips = []; // light spots: twig tips
   const ENV_BINS = 48;
   const envelope = new Float32Array(ENV_BINS);
 
@@ -121,7 +121,7 @@ export function buildTree(input = {}, sharedUniforms, opts = {}) {
     envelope[bin] = Math.max(envelope[bin], Math.hypot(p.x, p.z));
   };
 
-  // 줄기: 아래가 살짝 퍼지고 위로 갈수록 가늘어진다
+  // Trunk: slightly flared at the base, tapering upward
   const trunkPts = [];
   const trunkR = [];
   const segs = 30;
@@ -129,7 +129,7 @@ export function buildTree(input = {}, sharedUniforms, opts = {}) {
   for (let i = 0; i <= segs; i++) {
     const t = i / segs;
     trunkPts.push(new THREE.Vector3(Math.sin(t * 4 + swayA) * 0.025 * t, t * H, Math.cos(t * 3 + swayA) * 0.025 * t));
-    // 땅에 닿는 부분은 뿌리 쪽으로 넓게 퍼진다
+    // flares wide into the roots at ground level
     trunkR.push(params.trunkRadius * Math.pow(1 - t, 0.85) + 0.006 + params.trunkRadius * 0.55 * Math.exp((-t * H) / 0.7));
   }
   bark.add(trunkPts, trunkR, 20);
@@ -140,7 +140,7 @@ export function buildTree(input = {}, sharedUniforms, opts = {}) {
     return { p: trunkPts[i].clone().lerp(trunkPts[i + 1], k), r: lerp(trunkR[i], trunkR[i + 1], k) };
   };
 
-  // 뿌리 버팀: 밑동에서 땅으로 파고드는 굵은 뿌리
+  // Root buttresses: thick roots digging into the ground from the base
   const roots = 7;
   for (let i = 0; i < roots; i++) {
     const a = (i / roots) * Math.PI * 2 + (R() - 0.5) * 0.5;
@@ -157,7 +157,7 @@ export function buildTree(input = {}, sharedUniforms, opts = {}) {
     bark.add(pts, radii, 8);
   }
 
-  // 밑동의 옛 가지 자국: 짧게 잘린 가지 몇 개
+  // Old branch stubs on the lower trunk
   const clear = Math.min(params.clearTrunk, H * 0.25);
   const floorY = clear * 0.72;
   for (let i = 0; i < 6; i++) {
@@ -183,7 +183,7 @@ export function buildTree(input = {}, sharedUniforms, opts = {}) {
     }
   };
 
-  // 가지 하나를 자라게 한다. level 1 = 줄기에서 나온 가지, 2 = 잔가지
+  // Grow one branch. level 1 = from the trunk, 2 = twig
   const grow = (start, dir, len, r0, level, floor = floorY) => {
     const sections = level === 1 ? Math.max(4, Math.round(len / params.segLen)) : Math.max(3, Math.round(len / params.segLen));
     const seg = len / sections;
@@ -198,7 +198,7 @@ export function buildTree(input = {}, sharedUniforms, opts = {}) {
       d.y += (-params.droop * 0.22 * (1 - t) + params.upturn * 0.2 * t * t) * k;
       d.x += (R() - 0.5) * 0.1 * k;
       d.z += (R() - 0.5) * 0.1 * k;
-      // 밑동이 드러나도록 가지 끝이 일정 높이 아래로는 처지지 않는다
+      // branch tips don't droop below a set height so the trunk stays visible
       if (p.y < floor) d.y = Math.max(d.y, 0.12);
       else if (p.y < floor + 0.6) d.y = Math.max(d.y, -0.05);
       d.normalize();
@@ -219,7 +219,7 @@ export function buildTree(input = {}, sharedUniforms, opts = {}) {
       }
       if (level === 1) {
         if (t > 0.5 && t < 0.97) anchors.push({ p: pts[i].clone(), d: dirs[i].clone(), t });
-        // 좌우로 잔가지
+        // twigs on both sides
         if (i < sections) {
           const side = new THREE.Vector3().crossVectors(dirs[i], UP);
           if (side.lengthSq() < 1e-4) side.set(1, 0, 0);
@@ -247,7 +247,7 @@ export function buildTree(input = {}, sharedUniforms, opts = {}) {
     const y = lerp(crownBase, crownTop, t);
     const ht = y / H;
     const count = Math.max(3, Math.round(params.branchesPerWhorl * (1 - ht * 0.4) + (R() - 0.5) * 1.5));
-    // 아래는 넉넉하고 위로 갈수록 좁아지는 볼록한 원뿔. 층마다 길이가 조금씩 달라 켜가 보인다
+    // A convex cone, wide at the bottom and narrowing upward. Per-whorl length variation makes the layers visible
     const tier = 0.92 + 0.08 * Math.sin(t * Math.PI * 9);
     const len = params.spread * Math.pow(1 - t, 0.92) * tier * (0.88 + R() * 0.24) + 0.16;
     const rot0 = w * 2.39996;
@@ -257,18 +257,18 @@ export function buildTree(input = {}, sharedUniforms, opts = {}) {
       const dir = new THREE.Vector3(Math.cos(elev) * Math.cos(az), Math.sin(elev), Math.cos(elev) * Math.sin(az));
       const tr = trunkAt(y);
       const start = tr.p.clone().addScaledVector(new THREE.Vector3(dir.x, 0, dir.z).normalize(), tr.r * 0.6);
-      // 가지마다 처짐 한계를 달리해 아래 끝선이 들쭉날쭉하게
+      // vary the droop limit per branch for a ragged lower edge
       grow(start, dir, len, Math.max(0.012, tr.r * 0.32), 1, floorY + R() * 1.1);
     }
   }
-  // 꼭대기 순: 위를 향한 잎 몇 묶음
+  // Leader: a few upward-facing needle clusters
   for (let i = 0; i < 10; i++) {
     const y = H * (0.93 + i * 0.007);
     const a = i * 2.4;
     addNeedles(trunkAt(y).p, new THREE.Vector3(Math.cos(a) * 0.5, 1, Math.sin(a) * 0.5).normalize(), 1, 0.7);
   }
 
-  // 외곽선을 위아래로 부드럽게 (장식·갈런드 배치에 쓴다)
+  // Smooth the silhouette vertically (used for decor and garland placement)
   for (let pass = 0; pass < 2; pass++) {
     for (let i = 1; i < ENV_BINS - 1; i++) envelope[i] = Math.max(envelope[i], (envelope[i - 1] + envelope[i + 1]) * 0.5);
   }
@@ -278,7 +278,7 @@ export function buildTree(input = {}, sharedUniforms, opts = {}) {
     return lerp(envelope[i], envelope[i + 1], f - i) + 0.18;
   };
 
-  // 메시 만들기
+  // Build meshes
   const group = new THREE.Group();
   group.name = 'tree';
 
@@ -306,7 +306,7 @@ export function buildTree(input = {}, sharedUniforms, opts = {}) {
     sharedUniforms,
     { glow: true }
   );
-  // 순서를 섞어 두면 앞에서부터 일부만 그려도 나무 전체가 고르게 성겨진다 (반사용 축소 렌더)
+  // Shuffled order means drawing only a prefix thins the whole tree evenly (reduced render for reflections)
   for (let i = clusters.length - 1; i > 0; i--) {
     const j = Math.floor(R() * (i + 1));
     [clusters[i], clusters[j]] = [clusters[j], clusters[i]];
@@ -331,7 +331,7 @@ export function buildTree(input = {}, sharedUniforms, opts = {}) {
     m.makeBasis(X.clone().multiplyScalar(c.s), y2.multiplyScalar(c.s), Z.multiplyScalar(c.s));
     m.setPosition(c.p);
     needleMesh.setMatrixAt(i, m);
-    // 안쪽 잎은 어둡게: 빛이 덜 드는 효과
+    // darken inner needles to fake less light reaching them
     const radial = Math.hypot(c.p.x, c.p.z) / Math.max(0.3, envAt(c.p.y));
     const shade = lerp(0.42, 1.12, clamp(radial, 0, 1)) * (0.88 + R() * 0.24);
     col.setRGB(shade * (0.92 + R() * 0.12), shade, shade * (0.88 + R() * 0.1));
@@ -342,8 +342,8 @@ export function buildTree(input = {}, sharedUniforms, opts = {}) {
   needleMesh.receiveShadow = true;
   needleMesh.computeBoundingSphere();
   group.add(needleMesh);
-  // 그릴 때마다 개수를 정한다: 멀리서 보면 거리에 따라 줄이고, 그림자는 전부.
-  // 거울 카메라(userData.isMirror)에서는 건드리지 않는다
+  // Set the draw count per render: fewer with distance, all for shadows.
+  // Left untouched for mirror cameras (userData.isMirror)
   const fullCount = clusters.length;
   const _wp = new THREE.Vector3();
   const _tp = new THREE.Vector3();
@@ -362,7 +362,7 @@ export function buildTree(input = {}, sharedUniforms, opts = {}) {
   };
   needleMesh.onBeforeShadow = () => (needleMesh.count = fullCount);
 
-  // 깊이 선행 패스 (prepass.js): 잎은 수만 장이 겹쳐 같은 픽셀을 여러 번 칠한다
+  // Depth prepass (prepass.js): tens of thousands of overlapping needle cards overdraw the same pixels
   let preMat = null;
   if (opts.prepass) {
     preMat = prepassMaterial(needleMat);

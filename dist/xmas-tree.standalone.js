@@ -13808,7 +13808,7 @@ function Wd(e) {
 		toneMapped: !1
 	});
 	return t.onBeforeCompile = (t) => {
-		t.uniforms.uTime = e.uTime, t.uniforms.uTwinkle = e.uTwinkle, t.uniforms.uGlow = e.uGlow, t.uniforms.uPx = e.uPx, t.vertexShader = t.vertexShader.replace("#include <common>", "#include <common>\n        attribute float aPhase;\n        uniform float uTime;\n        uniform float uTwinkle;\n        uniform float uPx;\n        varying float vTw;").replace("#include <begin_vertex>", "#include <begin_vertex>\n        float twWave = 0.5 + 0.5 * sin(uTime * uTwinkle * (0.6 + fract(aPhase * 7.13)) + aPhase * 6.2831);\n        vTw = mix(1.0, 0.25 + 0.75 * twWave * twWave, step(0.001, uTwinkle));\n        // 멀리 있는 전구가 1픽셀보다 작아지면 깜박이며 번진다: 최소 크기를 지키고 밝기는 면적만큼 줄인다\n        {\n          vec4 bulbC = modelViewMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);\n          float bulbR = max(length(position) * length(modelMatrix[0].xyz), 1e-4); // 트리를 줄여 써도 화면 크기로 잰다\n          float grow = max(1.0, (-bulbC.z * uPx * 1.6) / bulbR);\n          transformed *= grow;\n          vTw /= grow * grow;\n        }"), t.fragmentShader = t.fragmentShader.replace("#include <common>", "#include <common>\nuniform float uGlow;\nvarying float vTw;").replace("#include <color_fragment>", "#include <color_fragment>\ndiffuseColor.rgb *= vTw * uGlow;");
+		t.uniforms.uTime = e.uTime, t.uniforms.uTwinkle = e.uTwinkle, t.uniforms.uGlow = e.uGlow, t.uniforms.uPx = e.uPx, t.vertexShader = t.vertexShader.replace("#include <common>", "#include <common>\n        attribute float aPhase;\n        uniform float uTime;\n        uniform float uTwinkle;\n        uniform float uPx;\n        varying float vTw;").replace("#include <begin_vertex>", "#include <begin_vertex>\n        float twWave = 0.5 + 0.5 * sin(uTime * uTwinkle * (0.6 + fract(aPhase * 7.13)) + aPhase * 6.2831);\n        vTw = mix(1.0, 0.25 + 0.75 * twWave * twWave, step(0.001, uTwinkle));\n        // Distant bulbs smaller than a pixel flicker: clamp to a minimum size and dim by the area ratio\n        {\n          vec4 bulbC = modelViewMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);\n          float bulbR = max(length(position) * length(modelMatrix[0].xyz), 1e-4); // measured in screen size even when the tree is scaled down\n          float grow = max(1.0, (-bulbC.z * uPx * 1.6) / bulbR);\n          transformed *= grow;\n          vTw /= grow * grow;\n        }"), t.fragmentShader = t.fragmentShader.replace("#include <common>", "#include <common>\nuniform float uGlow;\nvarying float vTw;").replace("#include <color_fragment>", "#include <color_fragment>\ndiffuseColor.rgb *= vTw * uGlow;");
 	}, t.customProgramCacheKey = () => "bulb", t;
 }
 function Gd(e, t) {
@@ -14689,17 +14689,17 @@ function Tf(e, { size: t = 1, capacity: n = Cf } = {}) {
 				p1: c,
 				p2: l,
 				p3: e,
-				t0: E(),
+				t0: D(),
 				dur: u
 			}, b(o, 2.2, n);
-		} else a ? (o._born = E(), b(o, .01)) : b(o);
+		} else a ? (o._born = D(), b(o, .01)) : b(o);
 		return d.onAdd?.(o), o;
 	}
 	function S(e) {
 		let t = u.get(e);
 		if (!t) return !1;
 		let n = rf.indexOf(t.shape), r = l[n], i = r.indexOf(t), a = r.pop();
-		return a !== t && (r[i] = a, b(a)), c[n].count = r.length, c[n].boundingSphere = null, c[n].boundingBox = null, u.delete(e), O === t && (O = null), d.onRemove?.(t), !0;
+		return a !== t && (r[i] = a, b(a)), c[n].count = r.length, c[n].boundingSphere = null, c[n].boundingBox = null, u.delete(e), k === t && (k = null), d.onRemove?.(t), !0;
 	}
 	function C() {
 		for (let e of [...u.keys()]) S(e);
@@ -14711,60 +14711,60 @@ function Tf(e, { size: t = 1, capacity: n = Cf } = {}) {
 	let T = (e, t, n, r, i, a) => {
 		let o = 1 - i;
 		return a.set(0, 0, 0).addScaledVector(e, o * o * o).addScaledVector(t, 3 * o * o * i).addScaledVector(n, 3 * o * i * i).addScaledVector(r, i * i * i);
-	}, E = () => performance.now() / 1e3, D = new J(), O = null;
-	function k() {
-		let e = E();
+	}, E = () => performance.now() / 1e3, D = () => E(), O = new J(), k = null;
+	function A() {
+		let e = D();
 		for (let t of u.values()) if (t._fly) {
 			let n = Math.min(1, (e - t._fly.t0) / t._fly.dur), r = n < .5 ? 4 * n * n * n : 1 - (-2 * n + 2) ** 3 / 2;
-			T(t._fly.p0, t._fly.p1, t._fly.p2, t._fly.p3, r, D), D.y += Math.sin(n * Math.PI * 3) * .008 * i.height * (1 - n), b(t, 2.2 - 1.2 * r, D, (1 - r) * Math.PI * 4), n >= 1 && (t._fly = null, t._born = e, d.onArrive?.(t));
+			T(t._fly.p0, t._fly.p1, t._fly.p2, t._fly.p3, r, O), O.y += Math.sin(n * Math.PI * 3) * .008 * i.height * (1 - n), b(t, 2.2 - 1.2 * r, O, (1 - r) * Math.PI * 4), n >= 1 && (t._fly = null, t._born = e, d.onArrive?.(t));
 		} else if (t._born) {
 			let n = Math.min(1, (e - t._born) / .6);
 			b(t, Math.max(.01, 1 + Math.sin(n * Math.PI) * .6 * (1 - n))), n >= 1 && (t._born = 0);
 		}
-		O && !O._fly && !O._born && b(O, 1.25 + Math.sin(e * 5) * .12);
+		k && !k._fly && !k._born && b(k, 1.25 + Math.sin(e * 5) * .12);
 	}
-	function A(e) {
-		O && O !== e && u.has(O.id) && b(O), O = e ? u.get(e.id ?? e) ?? null : null;
+	function j(e) {
+		k && k !== e && u.has(k.id) && b(k), k = e ? u.get(e.id ?? e) ?? null : null;
 	}
-	let j = new zs(), M = (e, t) => e instanceof zs ? e : (j.setFromCamera(e, t), j);
-	function N(e, t) {
-		let n = M(e, t).intersectObjects(c.filter((e) => e.count > 0), !1)[0];
+	let M = new zs(), N = (e, t) => e instanceof zs ? e : (M.setFromCamera(e, t), M);
+	function P(e, t) {
+		let n = N(e, t).intersectObjects(c.filter((e) => e.count > 0), !1)[0];
 		return n ? l[c.indexOf(n.object)][n.instanceId] ?? null : null;
 	}
-	let P = null;
-	function F() {
-		P && (r.remove(P), P.geometry.dispose());
+	let F = null;
+	function I() {
+		F && (r.remove(F), F.geometry.dispose());
 		let e = [], t = i.height, n = i.crownBase * .9;
 		for (let r = 0; r <= 40; r++) {
 			let a = n + r / 40 * (t * .97 - n);
 			e.push(new q(i.envAt(a) * .92 + .02, a));
 		}
-		P = new mi(new ho(e, 48), I), P.name = "ornament-surface", r.add(P);
+		F = new mi(new ho(e, 48), L), F.name = "ornament-surface", r.add(F);
 	}
-	let I = new ni({
+	let L = new ni({
 		visible: !1,
 		side: 2
 	});
-	F();
-	function L(e, t) {
-		let n = M(e, t).intersectObject(P, !1)[0];
+	I();
+	function R(e, t) {
+		let n = N(e, t).intersectObject(F, !1)[0];
 		return n ? {
 			...y(r.worldToLocal(n.point.clone())),
 			r: .92,
 			point: n.point.clone()
 		} : null;
 	}
-	let R = new ni({
+	let ee = new ni({
 		color: "#fff",
 		transparent: !0,
 		opacity: .8,
 		depthWrite: !1
-	}), ee = new mi(o[0], R);
-	ee.name = "ornament-ghost", ee.visible = !1, r.add(ee);
-	function te(e, n = "ball", r = "#ffffff") {
-		ee.visible = !!e, e && (ee.geometry = o[Math.max(0, rf.indexOf(n))], R.color.set(r), v(e, ee.position), ee.rotation.set(0, Math.atan2(ee.position.x, ee.position.z), 0), ee.scale.setScalar(a() * t * (1.15 + Math.sin(E() * 8) * .12)));
+	}), te = new mi(o[0], ee);
+	te.name = "ornament-ghost", te.visible = !1, r.add(te);
+	function ne(e, n = "ball", r = "#ffffff") {
+		te.visible = !!e, e && (te.geometry = o[Math.max(0, rf.indexOf(n))], ee.color.set(r), v(e, te.position), te.rotation.set(0, Math.atan2(te.position.x, te.position.z), 0), te.scale.setScalar(a() * t * (1.15 + Math.sin(D() * 8) * .12)));
 	}
-	let ne = (e) => {
+	let re = (e) => {
 		let t = {
 			id: e.id,
 			shape: e.shape,
@@ -14785,20 +14785,23 @@ function Tf(e, { size: t = 1, capacity: n = Cf } = {}) {
 		get count() {
 			return u.size;
 		},
-		pick: N,
-		surfacePoint: L,
-		preview: te,
-		highlight: A,
+		pick: P,
+		surfacePoint: R,
+		preview: ne,
+		highlight: j,
 		relayout(e) {
-			w(e), F();
+			w(e), I();
 		},
 		toLocal: v,
-		update: k,
-		toJSON: () => [...u.values()].map(ne),
+		update: A,
+		setClock(e) {
+			E = e ?? (() => performance.now() / 1e3);
+		},
+		toJSON: () => [...u.values()].map(re),
 		dispose() {
 			for (let e of o) e.dispose();
 			for (let e of c) e.dispose();
-			P?.geometry.dispose(), s.dispose(), R.dispose(), I.dispose();
+			F?.geometry.dispose(), s.dispose(), ee.dispose(), L.dispose();
 		}
 	};
 }
@@ -15043,7 +15046,7 @@ var Ef = {
 		return this.ornaments.toLocal(this.ornaments.get(e.id ?? e) ?? e, t), this.ornaments.group.localToWorld(t);
 	}
 	update(e) {
-		typeof e == "number" && (this.autoTime = !1, this.uniforms.uTime.value = e), this.ornaments.update();
+		typeof e == "number" && (this.autoTime && this.ornaments.setClock(() => this.uniforms.uTime.value), this.autoTime = !1, this.uniforms.uTime.value = e), this.ornaments.update();
 	}
 	toJSON() {
 		let e = this.options, t = {
@@ -15063,7 +15066,7 @@ var Ef = {
 	}
 	static fromJSON(t, n = {}) {
 		let r = typeof t == "string" ? JSON.parse(t) : t;
-		if (r.format && r.format !== "xmas-tree-kit") throw Error(`xmas-tree-kit: 알 수 없는 형식 ${r.format}`);
+		if (r.format && r.format !== "xmas-tree-kit") throw Error(`xmas-tree-kit: unknown format ${r.format}`);
 		let { format: i, version: a, ...o } = r;
 		return new e({
 			...o,
@@ -16570,7 +16573,7 @@ var jp = [
 		if (e && !this._json) try {
 			this._json = await (await fetch(e)).json();
 		} catch (e) {
-			console.warn("xmas-tree: src 를 읽지 못했습니다", e);
+			console.warn("xmas-tree: failed to load src", e);
 		}
 		if (!this.isConnected || this.viewer) return;
 		let t = (e) => this.hasAttribute(e) && this.getAttribute(e) !== "false";
