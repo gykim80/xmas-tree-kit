@@ -187,7 +187,9 @@ Only the preset name and changed values are stored. A tree with 300 ornaments th
 
 ## Promo video
 
-`promo/` holds a 24-second vertical (1080×1920) promo: one cut per beat at 120 BPM, showing seeds, presets, hanging ornaments, lights, garland, snow and the ways to ship a tree. Every frame is rendered by this library on a fixed clock, and the soundtrack is synthesized in `promo/music.mjs`.
+[![Promo still](docs/promo-still.jpg)](https://github.com/gykim80/xmas-tree-kit/releases/download/v0.2.0/xmas-tree-kit-promo.mp4)
+
+[Watch the promo (MP4, 24 s)](https://github.com/gykim80/xmas-tree-kit/releases/download/v0.2.0/xmas-tree-kit-promo.mp4). `promo/` holds a 24-second vertical (1080×1920) promo: one cut per beat at 120 BPM, showing seeds, presets, hanging ornaments, lights, garland, snow and the ways to ship a tree. Every frame is rendered by this library on a fixed clock, and the soundtrack is synthesized in `promo/music.mjs`.
 
 ```bash
 npm run dev          # preview at http://localhost:5320/promo/
