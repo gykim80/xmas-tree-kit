@@ -54,6 +54,7 @@
     "build:site": "vite build --config vite.site.config.js",
     "test": "node --test test/*.test.js",
     "check": "node scripts/check.mjs",
-    "promo": "node promo/render.mjs"
+    "promo": "node promo/render.mjs",
+    "record:shop": "node scripts/record-shop.mjs"
   }
 }

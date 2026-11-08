@@ -82,7 +82,7 @@ npm run dev     # http://localhost:5320/editor/
 
 ## 샘플 사이트: 트리 분양 쇼핑몰
 
-[![Evergreen & Co. 샘플 쇼핑몰](docs/adopt.jpg)](https://gykim80.github.io/xmas-tree-kit/examples/adopt/)
+[![Evergreen & Co. 샘플 쇼핑몰: 히어로 트리가 돌고, Next 로 바뀌고, 장바구니에 담기고, 카드 네 장이 돌고, 오너먼트가 달린다](docs/adopt.webp)](https://gykim80.github.io/xmas-tree-kit/examples/adopt/)
 
 [샘플 쇼핑몰 열기](https://gykim80.github.io/xmas-tree-kit/examples/adopt/). Evergreen & Co. 는 진짜 전나무를 한 철 분양해 주는 가상의 농장입니다. 어두운 3D 뷰어 대신 평범한 쇼핑몰 페이지에 트리를 넣으면 어떻게 보이는지 보여 줍니다. 페이지 글은 영어입니다.
 
@@ -110,6 +110,8 @@ el.addEventListener('load', () => {
 ```
 
 레이아웃은 GPT 로 뽑은 시안([docs/adopt-mockup.jpg](docs/adopt-mockup.jpg))에서 출발했습니다. 페이지의 트리는 모두 실시간으로 그리고, 생성한 그림은 농장 사진 한 장뿐입니다.
+
+위 움직이는 그림은 페이지를 실제로 녹화한 것입니다. `npm run record:shop` 이 프레임마다 모든 트리를 같은 각도만큼 돌려 찍고 `docs/adopt.webp` 로 묶습니다(`img2webp`, `ffmpeg` 필요).
 
 <details><summary>휴대폰 화면</summary>
 
@@ -310,6 +312,7 @@ npm run check        # 헤드리스 브라우저 점검, tmp/shots/ 에 스크�
 npm run build        # dist/ (라이브러리, 웹 컴포넌트, 스크립트 한 줄용 파일)
 npm run build:site   # site-dist/ (에디터·예제 정적 사이트)
 npm run promo        # 세로 홍보 영상을 promo/out/ 에 렌더링 (ffmpeg 필요)
+npm run record:shop  # 샘플 쇼핑몰을 docs/adopt.webp 로 녹화
 ```
 
 릴리스할 때는 `npm run build` 뒤 `dist/` 까지 커밋하고 태그를 답니다. git 으로 받는 사람과 jsDelivr 는 이 `dist/` 를 그대로 씁니다.

@@ -82,7 +82,7 @@ npm run dev     # http://localhost:5320/editor/
 
 ## Sample site: a tree adoption shop
 
-[![Evergreen & Co. sample shop](docs/adopt.jpg)](https://gykim80.github.io/xmas-tree-kit/examples/adopt/)
+[![Evergreen & Co. sample shop: the hero tree turns, Next swaps it, a tree goes into the bag, the four cards spin and ornaments get hung](docs/adopt.webp)](https://gykim80.github.io/xmas-tree-kit/examples/adopt/)
 
 [Open the sample shop](https://gykim80.github.io/xmas-tree-kit/examples/adopt/). Evergreen & Co. is a made-up farm that rents out real firs for the season. It shows how the trees fit into an ordinary shop page instead of a dark 3D viewer:
 
@@ -110,6 +110,8 @@ el.addEventListener('load', () => {
 ```
 
 The layout started from a GPT mockup ([docs/adopt-mockup.jpg](docs/adopt-mockup.jpg)). The trees in the page are rendered live; the farm photo is the only generated image.
+
+The animation above is a real recording of the page. `npm run record:shop` steps every tree by a fixed angle per frame, screenshots it and packs the frames into `docs/adopt.webp` (needs `img2webp` and `ffmpeg`).
 
 <details><summary>Phone layout</summary>
 
@@ -325,6 +327,7 @@ npm run check        # headless browser checks, screenshots in tmp/shots/
 npm run build        # dist/ (library, web component, one-script file)
 npm run build:site   # site-dist/ (static Tree Maker and examples)
 npm run promo        # renders the vertical promo video to promo/out/
+npm run record:shop  # records the sample shop to docs/adopt.webp
 ```
 
 To release, run `npm run build`, commit `dist/` and tag. git installs and jsDelivr use that `dist/` as is.

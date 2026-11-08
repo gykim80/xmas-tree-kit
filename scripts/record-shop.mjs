@@ -7,10 +7,10 @@ import { createServer } from 'vite';
 import { mkdirSync, rmSync, readdirSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
-const FPS = 20;
+const FPS = 15;
 const W = 1200;
 const H = 750;
-const OUT_W = 900;
+const OUT_W = 800;
 const FRAMES = 'tmp/shop-frames';
 rmSync(FRAMES, { recursive: true, force: true });
 mkdirSync(FRAMES, { recursive: true });
@@ -73,31 +73,31 @@ const scrollTo = async (sel, sec, offset = -24) => {
 const box = (sel) => page.$eval(sel, (e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; });
 const typeSlow = async (sel, text) => {
   await page.focus(sel);
-  for (const ch of text) {
-    await page.keyboard.type(ch);
+  for (let i = 0; i < text.length; i += 2) {
+    await page.keyboard.type(text.slice(i, i + 2));
     await shot();
   }
 };
 
 // 1) Hero: The Holly turns, then Next brings The Fjord
-await hold(3);
+await hold(2.6);
 await page.click('.arrow.next');
-await hold(2.5);
+await hold(2.2);
 // 2) Adopt it: dialog, a name, into the bag
 await page.click('#hero-adopt');
 await hold(0.6);
 await typeSlow('#adopt-pet', 'Sir Needles');
 await hold(0.5);
 await page.click('#adopt-form .solid');
-await hold(1.6);
+await hold(1.4);
 // 3) The four cards
-await scrollTo('#trees-title', 1.4);
-await hold(3.5);
+await scrollTo('#trees-title', 1.2);
+await hold(3);
 // 4) Hang ornaments with different shapes and colors
-await scrollTo('#decorate', 1.4, -60);
+await scrollTo('#decorate', 1.2, -60);
 await hold(0.6);
 const stage = await box('#deco-tree');
-for (const [shape, color, fx, fy] of [['star', '#f2c14e', 0.5, 0.38], ['heart', '#c8232c', 0.44, 0.55], ['bell', '#f2c14e', 0.57, 0.62], ['snowflake', '#3fa4ff', 0.48, 0.72]]) {
+for (const [shape, color, fx, fy] of [['star', '#f2c14e', 0.5, 0.38], ['heart', '#c8232c', 0.44, 0.55], ['bell', '#f2c14e', 0.57, 0.62]]) {
   await page.click(`[data-shape="${shape}"]`);
   await page.click(`[data-color="${color}"]`);
   await page.mouse.move(stage.x + stage.w * fx, stage.y + stage.h * fy);
@@ -108,8 +108,8 @@ for (const [shape, color, fx, fy] of [['star', '#f2c14e', 0.5, 0.38], ['heart', 
 await page.mouse.move(5, 5);
 await hold(1);
 // 5) Back to the top so the loop joins up
-await scrollTo('body', 1.4, 0);
-await hold(1);
+await scrollTo('body', 1.2, 0);
+await hold(0.8);
 
 await browser.close();
 await server.close();
@@ -121,7 +121,7 @@ const files = readdirSync(FRAMES).filter((f) => f.endsWith('.jpg')).sort();
 const small = `${FRAMES}/small`;
 mkdirSync(small, { recursive: true });
 execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', `${FRAMES}/%05d.jpg`, '-vf', `scale=${OUT_W}:-2:flags=lanczos`, '-q:v', '2', `${small}/%05d.jpg`]);
-const args = ['-loop', '0', '-lossy', '-q', process.env.Q || '62', '-m', '6', '-d', String(1000 / FPS)];
+const args = ['-loop', '0', '-lossy', '-q', process.env.Q || '56', '-m', '6', '-d', String(1000 / FPS)];
 for (let i = 1; i <= files.length; i++) args.push(`${small}/${String(i).padStart(5, '0')}.jpg`);
 execFileSync('img2webp', [...args, '-o', 'docs/adopt.webp']);
 console.log(`docs/adopt.webp  ${(statSync('docs/adopt.webp').size / 1e6).toFixed(2)} MB`);
