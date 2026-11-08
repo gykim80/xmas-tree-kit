@@ -8,6 +8,8 @@
 
 [크리스마스 타운](https://town.honeycake.io) 광장의 20m 트리를 만든 코드에서 나무와 장식 부분을 떼어 냈습니다.
 
+데모: [에디터](https://gykim80.github.io/xmas-tree-kit/editor/) · [웹페이지 예제](https://gykim80.github.io/xmas-tree-kit/examples/embed.html) · [게임 예제](https://gykim80.github.io/xmas-tree-kit/examples/game.html)
+
 ![에디터](docs/editor.png)
 
 ## 설치
