@@ -10,7 +10,7 @@
 
 [크리스마스 타운](https://town.honeycake.io) 광장의 20m 트리를 만든 코드에서 나무와 장식 부분을 떼어 냈습니다.
 
-데모: [에디터](https://gykim80.github.io/xmas-tree-kit/editor/) · [웹페이지 예제](https://gykim80.github.io/xmas-tree-kit/examples/embed.html) · [게임 예제](https://gykim80.github.io/xmas-tree-kit/examples/game.html)
+데모: [에디터](https://gykim80.github.io/xmas-tree-kit/editor/) · [샘플 쇼핑몰](https://gykim80.github.io/xmas-tree-kit/examples/adopt/) · [웹페이지 예제](https://gykim80.github.io/xmas-tree-kit/examples/embed.html) · [게임 예제](https://gykim80.github.io/xmas-tree-kit/examples/game.html)
 
 ![에디터](docs/editor.png)
 
@@ -79,6 +79,43 @@ npm run dev     # http://localhost:5320/editor/
 - `링크 복사` 는 트리를 주소 뒤(`#t=…`)에 담는다. 그 주소를 열면 같은 트리가 나온다
 - `넣기 코드 복사` 는 지금 트리를 띄우는 HTML 을 복사한다
 - `GLB (게임용)` 은 낮은 품질로 다시 키워 가볍게 내보낸다. `GLB (원본)` 은 화면 그대로 내보낸다
+
+## 샘플 사이트: 트리 분양 쇼핑몰
+
+[![Evergreen & Co. 샘플 쇼핑몰](docs/adopt.jpg)](https://gykim80.github.io/xmas-tree-kit/examples/adopt/)
+
+[샘플 쇼핑몰 열기](https://gykim80.github.io/xmas-tree-kit/examples/adopt/). Evergreen & Co. 는 진짜 전나무를 한 철 분양해 주는 가상의 농장입니다. 어두운 3D 뷰어 대신 평범한 쇼핑몰 페이지에 트리를 넣으면 어떻게 보이는지 보여 줍니다. 페이지 글은 영어입니다.
+
+- 히어로의 트리는 빨간 카드 위, 손글씨 "Adopt" 두 겹 사이에 서 있어서 글자가 트리를 감쌉니다. `Previous`·`Next` 로 프리셋이 바뀝니다
+- 상품 카드마다 배경이 투명한 `<xmas-tree>` 가 하나씩 들어 있습니다. 끌면 돌아갑니다
+- "Hang your own ornaments" 에서 모양과 색을 고르고 트리를 누르면 오너먼트가 달립니다. 개수는 `ornamentadd` 이벤트로 셉니다
+- `Adopt` 를 누르면 대화상자가 뜨고 장바구니에 담깁니다
+
+페이지 전체가 HTML, CSS, JS 150줄 남짓이고 [`examples/adopt/`](examples/adopt/) 에 있습니다. 가져다 쓸 만한 부분은 두 가지입니다.
+
+```html
+<!-- 내 배경 위에 투명하게, 바닥 원판 없이 -->
+<xmas-tree preset="classic" background="transparent" ground="false" camera-controls auto-rotate snowfall></xmas-tree>
+```
+
+```js
+// 태그 기본 조명은 밤하늘용이다. 밝은 페이지에서는 조명을 따뜻하게 바꾸고, 휠은 페이지 스크롤에 돌려준다
+el.addEventListener('load', () => {
+  for (const o of el.viewer.scene.children) {
+    if (o.isHemisphereLight) o.intensity = 1.1;
+    if (o.isDirectionalLight) o.color.set('#fff0d8');
+  }
+  el.viewer.controls.enableZoom = false;
+});
+```
+
+레이아웃은 GPT 로 뽑은 시안([docs/adopt-mockup.jpg](docs/adopt-mockup.jpg))에서 출발했습니다. 페이지의 트리는 모두 실시간으로 그리고, 생성한 그림은 농장 사진 한 장뿐입니다.
+
+<details><summary>휴대폰 화면</summary>
+
+<img src="docs/adopt-mobile.jpg" alt="휴대폰에서 본 샘플 쇼핑몰" width="300" />
+
+</details>
 
 ## 옵션
 

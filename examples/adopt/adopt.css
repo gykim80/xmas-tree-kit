@@ -194,19 +194,19 @@ section { scroll-margin-top: 20px; }
 @media (max-width: 720px) {
   .top { padding: 14px 16px; }
   .logo { font-size: 24px; }
-  .hero { margin: 0 12px; height: 760px; border-radius: 22px; }
+  .hero { margin: 0 12px; height: 820px; border-radius: 22px; }
   .hero-kicker { left: 0; right: 0; text-align: center; top: 24px; font-size: 28px; }
   .hero-script { left: 0; right: 0; text-align: center; top: 54px; font-size: 128px; }
   .hero-script-front { clip-path: inset(0 0 0 60%); }
-  .hero-tree { top: 150px; bottom: 210px; width: 100%; }
-  .arrow { top: 380px; font-size: 0; gap: 0; }
+  .hero-tree { top: 150px; bottom: 300px; width: 100%; }
+  .arrow { top: 340px; font-size: 0; gap: 0; }
   .arrow.prev { left: 10px; }
   .arrow.next { right: 10px; }
   .ring { width: 40px; height: 40px; font-size: 17px; }
   .hero-copy { left: 22px; right: 22px; top: auto; bottom: 22px; width: auto; }
   .hero-copy h2 { font-size: 26px; }
   .hero-copy p { margin-top: 8px; font-size: 14px; }
-  .hero-buy { left: 0; right: 0; bottom: 140px; text-align: center; }
+  .hero-buy { left: 0; right: 0; bottom: 200px; text-align: center; }
   .hero-pick { margin-left: 0; }
   .trees, .how, .decorate { padding: 0 16px; }
   .section-head { padding-top: 56px; }

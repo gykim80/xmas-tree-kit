@@ -157,6 +157,38 @@ async function open(path, { w = 1280, h = 800 } = {}) {
   await ed.close();
 }
 
+// 6) Sample shop (tree adoption site)
+{
+  const { page, errors } = await open('/examples/adopt/', { w: 1440, h: 900 });
+  await page.waitForFunction(() => [...document.querySelectorAll('xmas-tree')].every((e) => e.tree), null, { timeout: 60000 });
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: 'tmp/shots/adopt.png' });
+  const n = await page.evaluate(() => document.querySelectorAll('xmas-tree').length);
+  ok('adopt: hero, 4 cards and the decorate tree load', n === 6);
+  await page.click('.arrow.next');
+  await page.waitForTimeout(400);
+  const next = await page.evaluate(() => ({ name: document.querySelector('#hero-name').textContent, preset: document.querySelector('#hero-tree').tree.toJSON().preset }));
+  ok('adopt: Next swaps the hero tree', next.name === 'The Fjord' && next.preset === 'nordic', `${next.name}, ${next.preset}`);
+  await page.click('#hero-adopt');
+  await page.fill('#adopt-pet', 'Sir Needles');
+  await page.click('#adopt-form .solid');
+  await page.waitForFunction(() => document.querySelector('#bag-count').textContent === '1', null, { timeout: 3000 }).catch(() => {});
+  const bag = await page.textContent('#bag-count');
+  ok('adopt: adopting adds to the bag', bag === '1', `bag ${bag}`);
+  const deco = await page.$('#deco-tree');
+  await deco.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(500);
+  const before = Number(await page.textContent('#hung-count'));
+  await page.click('[data-shape="star"]');
+  const box = await deco.boundingBox();
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height * 0.5);
+  await page.waitForTimeout(400);
+  const after = Number(await page.textContent('#hung-count'));
+  ok('adopt: clicking the tree hangs an ornament', after === before + 1, `${before} → ${after}`);
+  ok('adopt: no console errors', errors.length === 0, errors.slice(0, 3).join(' | '));
+  await page.close();
+}
+
 await browser.close();
 await server.close();
 console.log(results.join('\n'));

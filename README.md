@@ -10,7 +10,7 @@ A three.js library that grows a fir tree from a single seed and decorates it wit
 
 The tree and decoration code was taken from the 20 m tree in the [Christmas Town](https://town.honeycake.io) plaza.
 
-Demo: [Tree Maker](https://gykim80.github.io/xmas-tree-kit/editor/) · [Embed example](https://gykim80.github.io/xmas-tree-kit/examples/embed.html) · [Game example](https://gykim80.github.io/xmas-tree-kit/examples/game.html)
+Demo: [Tree Maker](https://gykim80.github.io/xmas-tree-kit/editor/) · [Sample shop](https://gykim80.github.io/xmas-tree-kit/examples/adopt/) · [Embed example](https://gykim80.github.io/xmas-tree-kit/examples/embed.html) · [Game example](https://gykim80.github.io/xmas-tree-kit/examples/game.html)
 
 ![Tree Maker](docs/editor.png)
 
@@ -79,6 +79,43 @@ npm run dev     # http://localhost:5320/editor/
 - `Copy link` puts the tree in the URL (`#t=…`). Opening that URL shows the same tree
 - `Copy embed code` copies HTML that shows the current tree
 - `GLB (game)` regrows the tree at low quality before export. `GLB (full)` exports what you see
+
+## Sample site: a tree adoption shop
+
+[![Evergreen & Co. sample shop](docs/adopt.jpg)](https://gykim80.github.io/xmas-tree-kit/examples/adopt/)
+
+[Open the sample shop](https://gykim80.github.io/xmas-tree-kit/examples/adopt/). Evergreen & Co. is a made-up farm that rents out real firs for the season. It shows how the trees fit into an ordinary shop page instead of a dark 3D viewer:
+
+- the hero tree stands in front of a red card, between two copies of the script word "Adopt", so the text wraps around it. `Previous` and `Next` swap the preset
+- each product card is its own `<xmas-tree>` with a transparent background. Drag one to turn it
+- in "Hang your own ornaments" visitors pick a shape and color and click the tree. The count comes from the `ornamentadd` event
+- `Adopt` opens a dialog and adds the tree to the bag
+
+The whole page is plain HTML, CSS and about 150 lines of JS in [`examples/adopt/`](examples/adopt/). Two tricks worth copying:
+
+```html
+<!-- transparent tree over your own background, no ground disc -->
+<xmas-tree preset="classic" background="transparent" ground="false" camera-controls auto-rotate snowfall></xmas-tree>
+```
+
+```js
+// the tag lights trees for a night sky; warm the lights up for a light page and free the wheel for scrolling
+el.addEventListener('load', () => {
+  for (const o of el.viewer.scene.children) {
+    if (o.isHemisphereLight) o.intensity = 1.1;
+    if (o.isDirectionalLight) o.color.set('#fff0d8');
+  }
+  el.viewer.controls.enableZoom = false;
+});
+```
+
+The layout started from a GPT mockup ([docs/adopt-mockup.jpg](docs/adopt-mockup.jpg)). The trees in the page are rendered live; the farm photo is the only generated image.
+
+<details><summary>Phone layout</summary>
+
+<img src="docs/adopt-mobile.jpg" alt="Sample shop on a phone" width="300" />
+
+</details>
 
 ## Options
 
