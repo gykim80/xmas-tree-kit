@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Evergreen &amp; Co. · Adopt a fir for Christmas</title>
+    <meta name="description" content="Adopt a real fir from our family farm for the season. We decorate it, deliver it, and replant it in January." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Kaushan+Script&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./adopt.css" />
+  </head>
+  <body>
+    <a class="skip" href="#trees">Skip to the trees</a>
+
+    <header class="top">
+      <a class="logo" href="#" aria-label="Evergreen & Co. home">
+        <svg viewBox="0 0 40 32" aria-hidden="true"><path d="M12 2 4 16h4l-5 9h7v5h4v-5h7l-5-9h4zM28 6l-6 11h3l-4 8h5v5h4v-5h5l-4-8h3z" /></svg>
+        Evergreen &amp; Co.
+      </a>
+      <nav aria-label="Main">
+        <a href="#trees">Our Trees</a>
+        <a href="#how">How It Works</a>
+        <a href="#decorate">Decorate</a>
+        <a href="#farm">Our Farm</a>
+      </nav>
+      <div class="icons">
+        <button class="icon" type="button" aria-label="Search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+        </button>
+        <button class="icon" type="button" aria-label="Account">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" /></svg>
+        </button>
+        <button class="icon bag" type="button" aria-label="Adoption bag, 0 trees" id="bag">
+          <svg viewBox="0 0 24 24"><path d="M5 8h14l-1 13H6z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>
+          <span class="count" id="bag-count" hidden>0</span>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <!-- Hero: the tree stands between two copies of the script word, so it overlaps the text -->
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-forest" aria-hidden="true"></div>
+        <p class="hero-kicker">a fir for this</p>
+        <h1 class="hero-script" id="hero-title" aria-label="Adopt a fir for this Christmas">Adopt</h1>
+        <xmas-tree
+          id="hero-tree"
+          class="hero-tree"
+          preset="classic"
+          size="1.8"
+          background="transparent"
+          ground="false"
+          camera-controls
+          auto-rotate
+          snowfall
+          aria-label="3D preview of the selected tree. Drag to turn it."
+        ></xmas-tree>
+        <span class="hero-script hero-script-front" aria-hidden="true">Adopt</span>
+
+        <button class="arrow prev" type="button" data-step="-1"><span class="ring">←</span> Previous</button>
+        <button class="arrow next" type="button" data-step="1">Next <span class="ring">→</span></button>
+
+        <div class="hero-buy">
+          <button class="pill" type="button" id="hero-adopt">Adopt This Tree <span aria-hidden="true">→</span></button>
+          <p class="hero-pick" aria-live="polite"><strong id="hero-name">The Holly</strong> · <span id="hero-meta">5–6 ft · $89</span></p>
+        </div>
+
+        <div class="hero-copy">
+          <h2>Grown on our farm, delivered to your door</h2>
+          <p>Pick a fir from our hillside. We dress it, bring it to you in December and plant it back in the field in January.</p>
+        </div>
+      </section>
+
+      <section class="trees" id="trees" aria-labelledby="trees-title">
+        <div class="section-head">
+          <h2 id="trees-title">Meet this season's trees</h2>
+          <p>Every tree is cut-free and grown in a pot. Drag a tree to turn it, then pick the one you like.</p>
+        </div>
+        <ul class="cards" id="cards"></ul>
+      </section>
+
+      <section class="how" id="how" aria-labelledby="how-title">
+        <h2 id="how-title">How adoption works</h2>
+        <ol class="steps">
+          <li>
+            <span class="badge"><svg viewBox="0 0 24 24"><path d="M12 2 6 11h3l-4 7h14l-4-7h3z" /><path d="M12 18v4" /></svg></span>
+            <h3><em>01.</em> Pick your tree</h3>
+            <p>Choose a size and a look. Each tree has a name and a row number on the farm.</p>
+          </li>
+          <li>
+            <span class="badge"><svg viewBox="0 0 24 24"><path d="M12 22V11" /><path d="M12 11c0-4 3-6 7-6 0 4-3 6-7 6zM12 13c0-3-2-5-6-5 0 3 2 5 6 5z" /></svg></span>
+            <h3><em>02.</em> We decorate and deliver</h3>
+            <p>Lights, garland and the ornaments you chose go on at the farm. Delivery is the first week of December.</p>
+          </li>
+          <li>
+            <span class="badge"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3L20 9" /><path d="M20 4v5h-5" /><path d="M20 12a8 8 0 0 1-14 5.3L4 15" /><path d="M4 20v-5h5" /></svg></span>
+            <h3><em>03.</em> We replant in January</h3>
+            <p>We collect the tree after New Year and plant it back in its row. You can adopt the same tree next year.</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="decorate" id="decorate" aria-labelledby="decorate-title">
+        <div class="decorate-copy">
+          <h2 id="decorate-title">Hang your own ornaments</h2>
+          <p>Click the tree to hang an ornament. Shift-click one to take it off. We hang the same ornaments on your tree before it leaves the farm.</p>
+          <fieldset class="picker">
+            <legend>Shape</legend>
+            <div class="chips" id="shapes"></div>
+          </fieldset>
+          <fieldset class="picker">
+            <legend>Color</legend>
+            <div class="swatches" id="colors"></div>
+          </fieldset>
+          <p class="hung" aria-live="polite"><strong id="hung-count">0</strong> ornaments hung</p>
+        </div>
+        <div class="decorate-stage">
+          <xmas-tree
+            id="deco-tree"
+            preset="snowy"
+            size="1.8"
+            quality="medium"
+            background="transparent"
+            ground="false"
+            camera-controls
+            decorate
+            ornament-shape="ball"
+            ornament-color="#c8232c"
+            aria-label="3D tree you can decorate. Click to hang an ornament."
+          ></xmas-tree>
+        </div>
+      </section>
+
+      <section class="farm" id="farm" aria-labelledby="farm-title">
+        <img src="./farm.jpg" alt="Rows of young firs under fresh snow in front of a red barn at sunset" loading="lazy" width="1400" height="875" />
+        <div class="farm-copy">
+          <h2 id="farm-title">Three generations on the same hillside</h2>
+          <p>Our family has grown firs on 40 acres outside Cedar Falls since 1962. About 2,000 trees go out each December, and every one comes back to its row.</p>
+          <a class="link" href="#trees">Meet the trees <span aria-hidden="true">→</span></a>
+        </div>
+      </section>
+
+      <section class="news" aria-labelledby="news-title">
+        <div class="hero-forest" aria-hidden="true"></div>
+        <div>
+          <h2 id="news-title">Get a note when your tree is ready</h2>
+          <p>One email when adoption opens, one when your tree is decorated.</p>
+        </div>
+        <form class="news-form" id="news-form">
+          <label class="sr" for="email">Email address</label>
+          <input id="email" type="email" required placeholder="Your email address" autocomplete="email" />
+          <button type="submit" aria-label="Subscribe">→</button>
+        </form>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <a class="logo" href="#">Evergreen &amp; Co.</a>
+      <p class="foot-note">Real firs for the season, from a family farm.</p>
+      <nav aria-label="Footer">
+        <a href="#trees">Our Trees</a>
+        <a href="#how">How It Works</a>
+        <a href="#farm">Our Farm</a>
+        <a href="#">Care Guide</a>
+        <a href="#">Shipping</a>
+        <a href="#">Returns</a>
+      </nav>
+      <p class="foot-small">© 2026 Evergreen &amp; Co. A sample shop. No real trees are sold here.</p>
+    </footer>
+
+    <dialog class="adopt" id="adopt-dialog" aria-labelledby="adopt-title">
+      <form method="dialog" id="adopt-form">
+        <h2 id="adopt-title">Adopt <span id="adopt-name">The Holly</span></h2>
+        <p id="adopt-meta">5–6 ft · $89</p>
+        <label>Give it a name <input id="adopt-pet" maxlength="24" placeholder="Sir Needles" /></label>
+        <label>Delivery week
+          <select id="adopt-week">
+            <option>Dec 1 – Dec 5</option>
+            <option>Dec 8 – Dec 12</option>
+            <option>Dec 15 – Dec 19</option>
+          </select>
+        </label>
+        <div class="adopt-actions">
+          <button class="ghost" value="cancel" type="submit" formnovalidate>Cancel</button>
+          <button class="solid" value="ok" type="submit">Add to bag</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="./adopt.js"></script>
+  </body>
+</html>

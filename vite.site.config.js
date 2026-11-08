@@ -14,6 +14,7 @@ export default defineConfig({
         basic: resolve('examples/basic.html'),
         embed: resolve('examples/embed.html'),
         game: resolve('examples/game.html'),
+        adopt: resolve('examples/adopt/index.html'),
       },
     },
   },

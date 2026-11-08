@@ -5,45 +5,71 @@
     <meta name="viewport" content="width=1080" />
     <title>xmas-tree-kit promo</title>
     <style>
+      @font-face { font-family: 'Script'; src: url(./fonts/pacifico.woff2) format('woff2'); font-display: block; }
+      @font-face { font-family: 'Logo'; src: url(./fonts/yellowtail.woff2) format('woff2'); font-display: block; }
+      @font-face { font-family: 'Serif'; src: url(./fonts/fraunces.woff2) format('woff2'); font-weight: 100 900; font-display: block; }
+      @font-face { font-family: 'Mono'; src: url(./fonts/jetbrains-mono.woff2) format('woff2'); font-weight: 100 800; font-display: block; }
+
+      :root { --red: #c8202a; --red-deep: #a3141c; --red-ink: #d42a33; --paper: #fbf8f6; --card: #f2edea; --ink: #1d1414; --gold: #f4c25a; }
       html, body { margin: 0; background: #000; overflow: hidden; }
       /* 1080×1920 frame. In preview it is scaled to fit the window */
-      #frame { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; transform-origin: 0 0; background: #0b1530; }
+      #frame { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; transform-origin: 0 0; background: var(--red); }
+      #back, #front, #fx { position: absolute; inset: 0; pointer-events: none; }
       #stage { position: absolute; inset: 0; }
-      .layer { position: absolute; left: 0; right: 0; text-align: center; color: #fff; pointer-events: none; will-change: transform, opacity; }
-      .heavy { font-family: 'Arial Black', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: 900; letter-spacing: -0.02em; text-transform: uppercase; }
-      .mono { font-family: Menlo, 'SF Mono', Consolas, monospace; }
-      #kicker { top: 170px; font-size: 44px; color: #f2c14e; letter-spacing: 0.18em; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.55), 0 0 22px rgba(6, 10, 24, 0.75); }
-      #title { top: 220px; font-size: 150px; line-height: 0.95; text-shadow: 0 8px 40px rgba(0, 0, 0, 0.45); }
-      #label { bottom: 300px; font-size: 96px; line-height: 1; text-shadow: 0 6px 30px rgba(0, 0, 0, 0.5); }
-      #meta { bottom: 225px; font-size: 46px; color: #dfe7f5; }
-      #code {
-        left: 70px; right: 70px; bottom: 300px; text-align: left; font-size: 40px; line-height: 1.45;
-        background: rgba(8, 12, 26, 0.86); border: 2px solid rgba(255, 255, 255, 0.16); border-radius: 28px; padding: 40px 44px;
-        white-space: pre-wrap; word-break: break-all; color: #e6ecf8; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
-      }
-      #code .k { color: #f2c14e; }
-      #code .s { color: #8fd18f; }
-      #code .c { color: #8b97b3; }
-      #beats { bottom: 120px; display: flex; justify-content: center; gap: 22px; }
-      #beats i { display: block; width: 26px; height: 26px; border-radius: 50%; background: rgba(255, 255, 255, 0.22); }
-      #beats i.on { background: #f2c14e; box-shadow: 0 0 24px #f2c14e; }
-      #shade { position: absolute; left: 0; right: 0; bottom: 0; height: 760px; background: linear-gradient(rgba(6, 10, 24, 0), rgba(6, 10, 24, 0.78) 55%, rgba(6, 10, 24, 0.92)); pointer-events: none; }
-      #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
-      #bar { position: absolute; left: 0; top: 0; height: 12px; background: #f2c14e; }
+      .scene { position: absolute; inset: 0; opacity: 0; }
+      .abs { position: absolute; }
+      .serif { font-family: 'Serif', Georgia, serif; font-variation-settings: 'SOFT' 50, 'WONK' 0; }
+      .script { font-family: 'Script', cursive; }
+      .logo { font-family: 'Logo', cursive; }
+      .mono { font-family: 'Mono', Menlo, monospace; }
+      .red-bg { background: var(--red); }
+      .paper-bg { background: var(--paper); }
+      .white { color: #fff; }
+      .ink { color: var(--ink); }
+      em.r { font-style: normal; color: var(--red-ink); }
+
+      .forest { position: absolute; left: -40px; right: -40px; bottom: 0; }
+      .swirl { position: absolute; opacity: 0.07; }
+      .shadow { position: absolute; border-radius: 50%; background: radial-gradient(closest-side, rgba(40, 0, 0, 0.42), rgba(40, 0, 0, 0)); transform: translate(-50%, -50%); }
+
+      /* nav, as on the shop page */
+      .nav { position: absolute; left: 64px; right: 64px; top: 64px; height: 92px; display: flex; align-items: center; gap: 22px; }
+      .nav .logo { font-size: 74px; color: #fff; flex: 1; white-space: nowrap; }
+      .nav .search { width: 330px; height: 72px; border-radius: 40px; background: rgba(110, 0, 8, 0.32); color: rgba(255, 255, 255, 0.55); font: 400 28px 'Serif', serif; display: flex; align-items: center; padding: 0 30px; box-sizing: border-box; }
+      .nav .dot { width: 64px; height: 64px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.75); box-sizing: border-box; }
+
+      .pill { display: inline-flex; align-items: center; gap: 18px; border-radius: 999px; padding: 26px 46px; font: 600 40px 'Serif', serif; white-space: nowrap; }
+      .pill.white { background: #fff; color: var(--ink); box-shadow: 0 14px 40px rgba(60, 0, 0, 0.28); }
+      .pill.red { background: var(--red); color: #fff; box-shadow: 0 14px 34px rgba(200, 32, 42, 0.35); }
+      .tag { position: absolute; border-radius: 999px; background: #fff; color: var(--red-ink); font: 700 54px 'Serif', serif; padding: 14px 36px; box-shadow: 0 10px 30px rgba(80, 0, 0, 0.18); }
+
+      .card { position: absolute; border-radius: 64px; overflow: hidden; }
+      .arrow { position: absolute; width: 110px; height: 110px; border-radius: 50%; border: 3px solid rgba(29, 20, 20, 0.25); display: grid; place-items: center; font: 400 54px 'Serif', serif; color: var(--ink); box-sizing: border-box; }
+
+      .row { position: absolute; left: 90px; right: 90px; height: 108px; display: flex; align-items: center; gap: 34px; border-bottom: 2px solid rgba(29, 20, 20, 0.08); }
+      .row .tick { width: 66px; height: 66px; border-radius: 50%; border: 4px solid rgba(29, 20, 20, 0.22); box-sizing: border-box; display: grid; place-items: center; color: #fff; font: 700 38px 'Serif', serif; flex: none; }
+      .row .name { font: 600 54px 'Serif', serif; color: var(--ink); flex: 1; }
+      .row .val { font: 500 32px 'Mono', monospace; color: rgba(29, 20, 20, 0.5); }
+
+      .code-card { position: absolute; left: 70px; right: 70px; border-radius: 52px; background: #fff; padding: 46px 52px 54px; box-sizing: border-box; box-shadow: 0 30px 80px rgba(60, 0, 0, 0.35); transform-origin: 50% 0; }
+      .code-card h3 { margin: 0 0 26px; display: flex; align-items: center; gap: 22px; font: 700 54px 'Serif', serif; color: var(--ink); }
+      .code-card h3 b { font: 700 30px 'Mono', monospace; color: #fff; background: var(--red); border-radius: 999px; padding: 8px 20px; }
+      .code-card pre { margin: 0; font: 500 37px/1.5 'Mono', monospace; color: #3b2a2a; white-space: pre-wrap; }
+      .code-card .k { color: var(--red-ink); font-weight: 700; }
+      .code-card .s { color: #2f8a4c; }
+      .code-card .c { color: #a89a98; }
+
+      #wipe { position: absolute; left: -10%; right: -10%; height: 140%; top: 0; border-radius: 50% 50% 0 0 / 160px 160px 0 0; display: none; }
+      #flash { position: absolute; inset: 0; background: #fff; opacity: 0; }
+      #vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 45%, rgba(0, 0, 0, 0) 60%, rgba(40, 0, 0, 0.28) 100%); }
     </style>
   </head>
   <body>
     <div id="frame">
+      <div id="back"></div>
       <div id="stage"></div>
-      <div id="shade"></div>
-      <div id="kicker" class="layer heavy"></div>
-      <div id="title" class="layer heavy"></div>
-      <div id="label" class="layer heavy"></div>
-      <div id="meta" class="layer mono"></div>
-      <div id="code" class="layer mono"></div>
-      <div id="beats" class="layer"><i></i><i></i><i></i><i></i></div>
-      <div id="flash"></div>
-      <div id="bar"></div>
+      <div id="front"></div>
+      <div id="fx"><div id="vignette"></div><div id="wipe"></div><div id="flash"></div></div>
     </div>
     <script type="module" src="./main.js"></script>
   </body>

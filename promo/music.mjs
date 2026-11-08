@@ -1,20 +1,21 @@
-// Synthesizes the promo soundtrack: 120 BPM, 48 beats (24 s), 44.1 kHz stereo WAV.
-// Kick on every beat, clap on 2 and 4, closed hats on 8ths, sleigh-bell shaker on 16ths,
-// bass on the root and a bell arpeggio over C – Am – F – G.
+// Synthesizes the promo soundtrack: 120 BPM, 68 beats (34 s), 44.1 kHz stereo WAV.
+// Intro with a noise riser, then the "Jingle Bells" chorus (public domain) on bells from beat 4,
+// kick on every beat, clap on 2 and 4, hats, sleigh-bell shaker, offbeat chord stabs and a
+// sub-boom on every scene change.
 // node promo/music.mjs [out.wav]
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 
 export const BPM = 120;
-export const BEATS = 48;
+export const BEATS = 68;
+export const CUTS = [4, 10, 22, 30, 38, 46, 58]; // scene changes (beats), keep in sync with SECTIONS in main.js
 const SR = 44100;
 const BEAT = 60 / BPM;
-const TAIL = 1.5; // let the last bell ring
+const TAIL = 2;
 const N = Math.ceil((BEATS * BEAT + TAIL) * SR);
 const L = new Float32Array(N);
 const R = new Float32Array(N);
 
-// deterministic noise
 let seed = 1225;
 const rnd = () => {
   seed = (seed * 1664525 + 1013904223) >>> 0;
@@ -29,90 +30,129 @@ function add(t0, dur, gain, pan, fn) {
   const gl = gain * Math.cos(((pan + 1) * Math.PI) / 4);
   const gr = gain * Math.sin(((pan + 1) * Math.PI) / 4);
   for (let i = 0; i < n && s0 + i < N; i++) {
-    const v = fn(i / SR);
+    if (s0 + i < 0) continue;
+    const v = fn(i / SR, i / n);
     L[s0 + i] += v * gl;
     R[s0 + i] += v * gr;
   }
 }
 
 const kick = (t0, g = 1) =>
-  add(t0, 0.45, g, 0, (t) => {
-    const f = 45 + 110 * Math.exp(-t * 28);
-    const ph = 2 * Math.PI * (45 * t + (110 / 28) * (1 - Math.exp(-t * 28)));
-    return Math.sin(ph) * Math.exp(-t * 7) + (t < 0.004 ? noise() * 0.3 : 0) + 0 * f;
+  add(t0, 0.5, g, 0, (t) => {
+    const ph = 2 * Math.PI * (48 * t + (130 / 30) * (1 - Math.exp(-t * 30)));
+    return Math.sin(ph) * Math.exp(-t * 6.5) + (t < 0.004 ? noise() * 0.35 : 0);
   });
 
-// one-pole filters over noise
-function filteredNoise(t0, dur, g, pan, hp, decay) {
+function filteredNoise(t0, dur, g, pan, hp, decay, attack = 0) {
   let lp = 0;
   let prev = 0;
-  add(t0, dur, g, pan, (t) => {
+  add(t0, dur, g, pan, (t, u) => {
     const x = noise();
     const y = hp ? x - prev + 0.92 * lp : 0.6 * lp + 0.4 * x;
     prev = x;
     lp = y;
-    return y * Math.exp(-t * decay);
+    return y * (attack ? Math.pow(u, attack) : Math.exp(-t * decay));
   });
 }
-const hat = (t0, g = 0.22, pan = 0.25) => filteredNoise(t0, 0.06, g, pan, true, 70);
-const shaker = (t0, g = 0.08) => filteredNoise(t0, 0.05, g, -0.4, true, 90);
+const hat = (t0, g = 0.2, pan = 0.25) => filteredNoise(t0, 0.06, g, pan, true, 70);
+const openHat = (t0, g = 0.14) => filteredNoise(t0, 0.25, g, -0.2, true, 14);
+const shaker = (t0, g = 0.07) => filteredNoise(t0, 0.05, g, -0.4, true, 90);
 const clap = (t0, g = 0.5) => {
-  for (const d of [0, 0.011, 0.022]) filteredNoise(t0 + d, 0.18, g * 0.6, 0, true, 26);
+  for (const d of [0, 0.011, 0.022]) filteredNoise(t0 + d, 0.2, g * 0.6, 0, true, 24);
 };
-const bass = (t0, m, dur, g = 0.32) =>
+// rising noise into a drop
+const riser = (t0, dur, g = 0.35) => filteredNoise(t0, dur, g, 0, true, 0, 2.2);
+// sub-boom on scene changes: falling sine plus a soft noise hit
+const boom = (t0, g = 0.75) => {
+  add(t0, 1.2, g, 0, (t) => Math.sin(2 * Math.PI * (38 * t + (90 / 6) * (1 - Math.exp(-t * 6)))) * Math.exp(-t * 2.6));
+  filteredNoise(t0, 0.6, 0.18, 0, false, 6);
+};
+const bass = (t0, m, dur, g = 0.3) =>
   add(t0, dur, g, 0, (t) => {
     const f = midi(m);
-    const env = Math.min(1, t * 200) * Math.exp(-t * 3.2);
-    return (Math.sin(2 * Math.PI * f * t) + 0.35 * Math.sin(4 * Math.PI * f * t)) * env;
+    const env = Math.min(1, t * 200) * Math.exp(-t * 3);
+    return (Math.sin(2 * Math.PI * f * t) + 0.4 * Math.sin(4 * Math.PI * f * t)) * env;
   });
-const bell = (t0, m, g = 0.16, pan = 0) =>
-  add(t0, 1.4, g, pan, (t) => {
+const bell = (t0, m, g = 0.16, pan = 0, ring = 3.2) =>
+  add(t0, 1.8, g, pan, (t) => {
     const f = midi(m);
-    const env = Math.min(1, t * 400) * Math.exp(-t * 3.5);
+    const env = Math.min(1, t * 400) * Math.exp(-t * ring);
     return (Math.sin(2 * Math.PI * f * t) + 0.5 * Math.sin(2 * Math.PI * f * 2.76 * t) * Math.exp(-t * 6) + 0.25 * Math.sin(2 * Math.PI * f * 5.4 * t) * Math.exp(-t * 9)) * env;
   });
+// short saw-ish chord stab
+const stab = (t0, notes, g = 0.05) => {
+  for (const [k, m] of notes.entries())
+    add(t0, 0.22, g, k % 2 ? 0.35 : -0.35, (t) => {
+      const f = midi(m);
+      let v = 0;
+      for (let h = 1; h <= 6; h++) v += Math.sin(2 * Math.PI * f * h * t) / h;
+      return v * Math.exp(-t * 16);
+    });
+};
 
-// C – Am – F – G, one chord per bar (4 beats)
-const CHORDS = [
-  [60, 64, 67, 72],
-  [57, 60, 64, 69],
-  [53, 57, 60, 65],
-  [55, 59, 62, 67],
+// Jingle Bells chorus in C, [midi, beats]. 16 bars of 4 beats
+const E = 76, F = 77, G = 79, C = 72, D = 74, Ch = 84;
+const HALF = [
+  [E, 1], [E, 1], [E, 2],
+  [E, 1], [E, 1], [E, 2],
+  [E, 1], [G, 1], [C, 1.5], [D, 0.5],
+  [E, 4],
+  [F, 1], [F, 1], [F, 1.5], [F, 0.5],
+  [F, 1], [E, 1], [E, 1], [E, 0.5], [E, 0.5],
 ];
-const ARP = [0, 1, 2, 3, 2, 1, 2, 3]; // per 8th note in a bar
+const MELODY = [
+  ...HALF, [E, 1], [D, 1], [D, 1], [E, 1], [D, 2], [G, 2],
+  ...HALF, [G, 1], [G, 1], [F, 1], [D, 1], [C, 4],
+];
+// root and triad per bar
+const BARS = ['C', 'C', 'C', 'C', 'F', 'C', 'D', 'G', 'C', 'C', 'C', 'C', 'F', 'C', 'G', 'C'];
+const CHORD = { C: [48, 60, 64, 67], F: [53, 60, 65, 69], G: [55, 59, 62, 67], D: [50, 60, 62, 66] };
 
-for (let b = 0; b < BEATS; b++) {
+const START = 4;
+// intro: the first phrase hinted on soft bells, hats and a riser into the drop
+for (let b = 0; b < START; b++) {
+  hat(b * BEAT + BEAT * 0.5, 0.1);
+  bell(b * BEAT, CHORD.C[1 + (b % 3)] + 12, 0.08, b % 2 ? 0.4 : -0.4);
+}
+riser(0.4, START * BEAT - 0.4);
+
+let tm = START;
+for (const [m, len] of MELODY) {
+  bell(tm * BEAT, m, 0.2, 0.1);
+  bell(tm * BEAT, m - 12, 0.08, -0.2, 4);
+  tm += len;
+}
+
+for (let b = START; b < BEATS; b++) {
   const t = b * BEAT;
-  const bar = Math.floor(b / 4);
-  const chord = CHORDS[bar % 4];
-  const intro = b < 4;
-  const outro = b >= BEATS - 4;
-  // bells every 8th, an octave up in the hook sections
-  for (let e = 0; e < 2; e++) {
-    const idx = ARP[(b % 4) * 2 + e];
-    const up = b >= 20 && b < 36 ? 12 : 0;
-    bell(t + e * BEAT * 0.5, chord[idx] + 12 + up, intro ? 0.12 : 0.14, e ? 0.3 : -0.3);
-  }
-  if (intro) {
-    // build-up: hats only, then a kick on the downbeat of the drop
-    hat(t + BEAT * 0.5, 0.12);
-    continue;
-  }
-  kick(t, outro && b === BEATS - 1 ? 1.1 : 0.95);
+  const bar = Math.floor((b - START) / 4);
+  const ch = CHORD[BARS[Math.min(bar, BARS.length - 1)]];
+  const end = b >= 64;
+  if (end) continue; // the last bar rings out on the final chord
+  kick(t, 0.95);
   if (b % 2 === 1) clap(t);
   hat(t + BEAT * 0.5);
+  if (b % 4 === 3) openHat(t + BEAT * 0.5);
   for (let s = 0; s < 4; s++) shaker(t + (s * BEAT) / 4);
-  bass(t, chord[0] - 24, BEAT * 0.9);
+  bass(t, ch[0] - 12, BEAT * 0.45);
+  bass(t + BEAT * 0.5, ch[0], BEAT * 0.4, 0.18);
+  stab(t + BEAT * 0.5, ch.slice(1).map((m) => m + 12));
 }
-// final ring-out chord
-for (const m of CHORDS[0]) bell(BEATS * BEAT, m + 12, 0.12);
-kick(BEATS * BEAT, 1);
+for (const c of CUTS) {
+  boom(c * BEAT);
+  if (c > START) riser(c * BEAT - BEAT * 1.5, BEAT * 1.5, 0.16);
+}
+// final hit and ring-out
+kick(64 * BEAT, 1.1);
+boom(64 * BEAT, 0.9);
+for (const m of CHORD.C) bell(64 * BEAT, m + 24, 0.1, 0, 1.2);
+bell(64 * BEAT, Ch, 0.14, 0, 1.0);
 
 // soft clip and normalize
 let peak = 0;
 for (let i = 0; i < N; i++) {
-  L[i] = Math.tanh(L[i] * 0.9);
-  R[i] = Math.tanh(R[i] * 0.9);
+  L[i] = Math.tanh(L[i] * 0.85);
+  R[i] = Math.tanh(R[i] * 0.85);
   peak = Math.max(peak, Math.abs(L[i]), Math.abs(R[i]));
 }
 const gain = 0.89 / peak;
