@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>트리 만들기</title>
+    <meta name="description" content="전나무를 키우고 오너먼트·전구·갈런드로 꾸며서 파일로 내려받거나 웹페이지에 넣습니다." />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main id="stage" aria-label="트리 미리보기"></main>
+
+    <header class="bar top">
+      <h1>트리 만들기</h1>
+      <span id="stats" class="muted" aria-live="polite"></span>
+    </header>
+
+    <section class="bar bottom" aria-label="오너먼트 달기">
+      <div class="modes" role="radiogroup" aria-label="누르기 동작">
+        <button type="button" data-mode="view" role="radio" aria-checked="true">둘러보기</button>
+        <button type="button" data-mode="add" role="radio" aria-checked="false">달기</button>
+        <button type="button" data-mode="remove" role="radio" aria-checked="false">떼기</button>
+      </div>
+      <div id="shapes" class="shapes" role="radiogroup" aria-label="오너먼트 모양"></div>
+      <div id="colors" class="colors" role="radiogroup" aria-label="오너먼트 색"></div>
+      <span id="count" class="muted"></span>
+    </section>
+
+    <section class="bar actions" aria-label="저장과 내보내기">
+      <button type="button" id="save">JSON 저장</button>
+      <label class="file">불러오기<input type="file" id="load" accept="application/json,.json" /></label>
+      <button type="button" id="share">링크 복사</button>
+      <button type="button" id="embed">넣기 코드 복사</button>
+      <button type="button" id="glb-light">GLB (게임용)</button>
+      <button type="button" id="glb">GLB (원본)</button>
+      <button type="button" id="png">PNG</button>
+    </section>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

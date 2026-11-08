@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>예제: 내 장면에 트리 넣기</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #0b1530; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from 'three';
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+      import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+      import { ChristmasTree } from '../src/index.js';
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(Math.min(2, devicePixelRatio));
+      renderer.setSize(innerWidth, innerHeight);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.shadowMap.enabled = true;
+      document.body.append(renderer.domElement);
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color('#0d1836');
+      scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+      scene.environmentIntensity = 0.3;
+      scene.add(new THREE.HemisphereLight('#9fb6e8', '#2a2233', 0.6));
+      const sun = new THREE.DirectionalLight('#c8d6ff', 1.2);
+      sun.position.set(4, 8, 3);
+      sun.castShadow = true;
+      scene.add(sun);
+
+      const floor = new THREE.Mesh(new THREE.CircleGeometry(20, 48), new THREE.MeshStandardMaterial({ color: '#dfe7f2' }));
+      floor.rotation.x = -Math.PI / 2;
+      floor.receiveShadow = true;
+      scene.add(floor);
+
+      // 트리 세 그루: 프리셋과 크기만 다르게
+      const trees = [
+        new ChristmasTree({ preset: 'classic', size: 3 }),
+        new ChristmasTree({ preset: 'nordic', size: 2.2, quality: 'medium' }),
+        new ChristmasTree({ preset: 'candy', size: 1.6, quality: 'medium' }),
+      ];
+      trees[1].position.set(-3.2, 0, -1);
+      trees[2].position.set(3, 0, -0.6);
+      trees.forEach((t) => scene.add(t));
+
+      // 오너먼트 직접 달기: h 는 높이 비율, a 는 각도
+      for (let i = 0; i < 12; i++) trees[0].addOrnament({ shape: 'star', color: '#f2c14e', h: 0.25 + i * 0.05, a: i * 0.9 });
+
+      const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.05, 200);
+      camera.position.set(0, 2.2, 8.5);
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.target.set(0, 1.3, 0);
+      controls.update();
+
+      addEventListener('resize', () => {
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(innerWidth, innerHeight);
+      });
+      // 트리는 그릴 때 스스로 깜박이고 별을 돌린다. 따로 부를 것이 없다
+      renderer.setAnimationLoop(() => renderer.render(scene, camera));
+      window.__trees = trees;
+    </script>
+  </body>
+</html>

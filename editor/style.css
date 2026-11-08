@@ -1,0 +1,85 @@
+:root {
+  color-scheme: dark;
+  --bg: rgba(14, 20, 38, 0.82);
+  --line: rgba(255, 255, 255, 0.14);
+  --text: #eef2fb;
+  --muted: #a8b3cc;
+  --accent: #f2c14e;
+  font-family: 'Pretendard', system-ui, -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #0b1530; color: var(--text); overflow: hidden; }
+#stage { position: fixed; inset: 0; }
+#stage.add { cursor: crosshair; }
+#stage.remove { cursor: not-allowed; }
+
+.bar {
+  position: fixed;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+}
+.top { top: 12px; left: 12px; }
+.top h1 { font-size: 16px; margin: 0 6px 0 2px; font-weight: 700; }
+.bottom { left: 12px; bottom: 12px; max-width: calc(100vw - 24px); }
+.actions { left: 12px; top: 64px; max-width: min(560px, calc(100vw - 280px)); }
+.muted { color: var(--muted); font-size: 13px; }
+
+button, .file {
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 11px;
+  min-height: 36px;
+  cursor: pointer;
+}
+button:hover, .file:hover { background: rgba(255, 255, 255, 0.12); }
+button:focus-visible, .file:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.file input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.file { position: relative; display: inline-flex; align-items: center; }
+
+.modes { display: flex; gap: 4px; }
+[aria-checked='true'] { background: var(--accent); color: #1b1300; border-color: var(--accent); }
+.shapes, .colors { display: flex; gap: 4px; }
+.shapes button { min-width: 36px; padding: 6px; }
+.colors button { width: 28px; height: 28px; min-height: 28px; padding: 0; border-radius: 50%; }
+.colors button[aria-checked='true'] { outline: 2px solid #fff; outline-offset: 2px; }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  top: 16px;
+  transform: translate(-50%, -8px);
+  opacity: 0;
+  transition: 0.25s;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 14px;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* 조절판 */
+.lil-gui.root { top: 12px !important; right: 12px !important; max-height: calc(100vh - 140px); }
+
+@media (max-width: 720px) {
+  .lil-gui.root { max-height: 42vh; width: 220px !important; }
+  .actions { max-width: calc(100vw - 24px); }
+  .actions button, .actions .file { padding: 6px 8px; min-height: 32px; }
+  .bottom { gap: 6px; }
+  .top .muted { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .toast { transition: none; }
+}

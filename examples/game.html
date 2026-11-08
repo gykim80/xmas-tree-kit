@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>예제: 게임 속 트리</title>
+    <style>
+      html, body { margin: 0; height: 100%; overflow: hidden; background: #0b1530; font-family: system-ui, 'Apple SD Gothic Neo', sans-serif; }
+      canvas { display: block; touch-action: none; }
+      .hud { position: fixed; left: 12px; top: 12px; color: #eef2fb; background: rgba(10, 16, 32, 0.7); padding: 8px 12px; border-radius: 10px; font-size: 14px; line-height: 1.5; }
+      .aim { position: fixed; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px; border-radius: 50%; border: 2px solid #fff; opacity: 0.8; pointer-events: none; }
+      .aim.on { border-color: #f2c14e; transform: scale(1.4); }
+    </style>
+  </head>
+  <body>
+    <div class="hud" id="hud">W A S D 이동 · 끌어서 둘러보기 · 가운데 트리를 눌러 오너먼트 달기<br /><span id="score">단 오너먼트 0개</span></div>
+    <div class="aim" id="aim"></div>
+    <script type="module">
+      import * as THREE from 'three';
+      import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+      import { ChristmasTree, mulberry32 } from '../src/index.js';
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(Math.min(2, devicePixelRatio));
+      renderer.setSize(innerWidth, innerHeight);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.shadowMap.enabled = true;
+      document.body.append(renderer.domElement);
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color('#0e1a3a');
+      scene.fog = new THREE.Fog('#0e1a3a', 20, 70);
+      scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+      scene.environmentIntensity = 0.25;
+      scene.add(new THREE.HemisphereLight('#9fb6e8', '#2a2233', 0.55));
+      const moon = new THREE.DirectionalLight('#c8d6ff', 1.0);
+      moon.position.set(10, 20, 6);
+      moon.castShadow = true;
+      moon.shadow.mapSize.set(2048, 2048);
+      Object.assign(moon.shadow.camera, { left: -16, right: 16, top: 16, bottom: -16, far: 60 });
+      scene.add(moon);
+
+      const ground = new THREE.Mesh(new THREE.CircleGeometry(80, 64), new THREE.MeshStandardMaterial({ color: '#d9e2ef', roughness: 0.95 }));
+      ground.rotation.x = -Math.PI / 2;
+      ground.receiveShadow = true;
+      scene.add(ground);
+
+      // 가운데 큰 트리 + 둘레 숲 (숲은 낮은 품질·점광원 없음)
+      const main = new ChristmasTree({ preset: 'classic', size: 6, quality: 'high' });
+      scene.add(main);
+      const obstacles = [{ x: 0, z: 0, r: main.footprint.trunkRadius + 0.3 }];
+      const rand = mulberry32(7);
+      for (let i = 0; i < 26; i++) {
+        const a = rand() * Math.PI * 2;
+        const d = 12 + rand() * 22;
+        const t = new ChristmasTree({ preset: rand() < 0.5 ? 'snowy' : 'bare', quality: 'low', size: 3 + rand() * 3, seed: 100 + i, shadows: i % 3 === 0 });
+        t.position.set(Math.cos(a) * d, 0, Math.sin(a) * d);
+        t.rotation.y = rand() * 6;
+        scene.add(t);
+        obstacles.push({ x: t.position.x, z: t.position.z, r: t.footprint.trunkRadius + 0.3 });
+      }
+
+      // 1인칭 이동
+      const camera = new THREE.PerspectiveCamera(65, innerWidth / innerHeight, 0.05, 150);
+      const player = new THREE.Vector3(0, 1.65, 9);
+      let yaw = 0;
+      let pitch = 0.12;
+      const keys = new Set();
+      addEventListener('keydown', (e) => keys.add(e.code));
+      addEventListener('keyup', (e) => keys.delete(e.code));
+      let drag = null;
+      renderer.domElement.addEventListener('pointerdown', (e) => (drag = { x: e.clientX, y: e.clientY, moved: 0 }));
+      addEventListener('pointermove', (e) => {
+        if (!drag) return;
+        const dx = e.clientX - drag.x;
+        const dy = e.clientY - drag.y;
+        drag.moved += Math.abs(dx) + Math.abs(dy);
+        drag.x = e.clientX;
+        drag.y = e.clientY;
+        yaw -= dx * 0.004;
+        pitch = THREE.MathUtils.clamp(pitch - dy * 0.004, -1.2, 1.2);
+      });
+      const ray = new THREE.Raycaster();
+      const center = new THREE.Vector2(0, 0);
+      const COLORS = ['#e23b3b', '#f2c14e', '#3fa4ff', '#36c27a', '#c46cff', '#ff8fc7'];
+      const SHAPES = ['ball', 'star', 'bell', 'heart', 'snowflake'];
+      addEventListener('pointerup', () => {
+        if (drag && drag.moved < 8) hang();
+        drag = null;
+      });
+      // 화면 가운데가 가리키는 트리 자리에 단다. 손에서 날아가 붙는다
+      function hang() {
+        ray.setFromCamera(center, camera);
+        ray.far = 9;
+        const spot = main.surfacePoint(ray);
+        if (!spot) return;
+        const hand = camera.localToWorld(new THREE.Vector3(0.25, -0.3, -0.6));
+        main.addOrnament(
+          { shape: SHAPES[main.ornaments.count % SHAPES.length], color: COLORS[main.ornaments.count % COLORS.length], h: spot.h, a: spot.a },
+          { from: hand }
+        );
+        document.querySelector('#score').textContent = `단 오너먼트 ${main.ornaments.count}개`;
+      }
+
+      const fwd = new THREE.Vector3();
+      const right = new THREE.Vector3();
+      const clock = new THREE.Timer();
+      renderer.setAnimationLoop(() => {
+        clock.update();
+        const dt = Math.min(0.05, clock.getDelta());
+        fwd.set(-Math.sin(yaw), 0, -Math.cos(yaw));
+        right.set(-fwd.z, 0, fwd.x);
+        const speed = (keys.has('ShiftLeft') ? 7 : 3.5) * dt;
+        if (keys.has('KeyW')) player.addScaledVector(fwd, speed);
+        if (keys.has('KeyS')) player.addScaledVector(fwd, -speed);
+        if (keys.has('KeyD')) player.addScaledVector(right, speed);
+        if (keys.has('KeyA')) player.addScaledVector(right, -speed);
+        // 줄기에 부딪히면 밀어낸다
+        for (const o of obstacles) {
+          const dx = player.x - o.x;
+          const dz = player.z - o.z;
+          const d = Math.hypot(dx, dz);
+          if (d < o.r && d > 1e-4) {
+            player.x = o.x + (dx / d) * o.r;
+            player.z = o.z + (dz / d) * o.r;
+          }
+        }
+        camera.position.copy(player);
+        camera.rotation.set(pitch, yaw, 0, 'YXZ');
+        ray.setFromCamera(center, camera);
+        ray.far = 9;
+        document.querySelector('#aim').classList.toggle('on', !!main.surfacePoint(ray));
+        renderer.render(scene, camera);
+      });
+      addEventListener('resize', () => {
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(innerWidth, innerHeight);
+      });
+      window.__game = { main, player, hang, camera };
+    </script>
+  </body>
+</html>
