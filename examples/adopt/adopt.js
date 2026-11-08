@@ -130,11 +130,11 @@ function toast(msg) {
 
 // Register <xmas-tree> last so the load listeners above are already in place
 await import('../../src/element-define.js');
-ready(hero, () => warmUp(hero, { zoom: 0.66, lift: 0.04 }));
+ready(hero, () => warmUp(hero, { zoom: 0.74, lift: 0.06 }));
 ready(deco, () => {
   warmUp(deco, { zoom: 0.8 });
   // a few ornaments to start with
   [[0.3, 0.4, '#c8232c'], [0.5, 2.2, '#f2c14e'], [0.7, 4.1, '#f4f4f4']].forEach(([h, a, color]) => deco.tree.addOrnament({ shape: 'ball', color, h, a }));
   hung();
 });
-document.querySelectorAll('.card xmas-tree').forEach((el) => ready(el, () => warmUp(el, { zoom: 0.78 })));
+document.querySelectorAll('.card xmas-tree').forEach((el) => ready(el, () => warmUp(el, { zoom: 0.64, lift: 0.03 })));

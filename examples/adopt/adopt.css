@@ -42,6 +42,7 @@ button { font: inherit; cursor: pointer; }
 .icon { position: relative; width: 40px; height: 40px; border: 0; border-radius: 50%; background: none; display: grid; place-items: center; }
 .icon:hover { background: #f1e6dd; }
 .icon svg { width: 22px; height: 22px; fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.count[hidden] { display: none; }
 .count { position: absolute; top: 2px; right: 0; min-width: 18px; height: 18px; border-radius: 9px; background: var(--red); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; padding: 0 4px; }
 
 /* Hero */
@@ -64,15 +65,15 @@ button { font: inherit; cursor: pointer; }
   opacity: 0.09;
   pointer-events: none;
 }
-.hero-kicker { position: absolute; left: 17%; top: 46px; margin: 0; font-family: var(--serif); font-size: 46px; font-weight: 500; z-index: 1; }
+.hero-kicker { position: absolute; left: 17%; top: 30px; margin: 0; font-family: var(--serif); font-size: 46px; font-weight: 500; z-index: 1; }
 .hero-script {
   position: absolute;
   left: 13%;
-  top: 92px;
+  top: 112px;
   margin: 0;
   font-family: var(--script);
   font-weight: 400;
-  font-size: 250px;
+  font-size: 230px;
   line-height: 1;
   letter-spacing: -0.02em;
   color: #fff;
@@ -93,8 +94,8 @@ button { font: inherit; cursor: pointer; }
 .pill:hover { transform: translateY(-2px); }
 .pill.small { padding: 10px 22px; font-size: 15px; background: var(--red); color: #fff; }
 .hero-pick { margin: 14px 0 0 6px; font-size: 15px; opacity: 0.92; }
-.hero-copy { position: absolute; right: 7%; top: 250px; width: 300px; z-index: 4; }
-.hero-copy h2 { font-size: 40px; line-height: 1.1; font-weight: 500; }
+.hero-copy { position: absolute; right: 130px; top: 250px; width: 290px; z-index: 4; }
+.hero-copy h2 { font-size: 38px; line-height: 1.1; font-weight: 500; }
 .hero-copy p { font-size: 15px; opacity: 0.9; margin: 16px 0 0; }
 
 /* Sections */
@@ -174,8 +175,8 @@ section { scroll-margin-top: 20px; }
 .ghost, .solid { border-radius: 999px; padding: 12px 22px; font-weight: 700; }
 .ghost { border: 1.5px solid #e2d3c9; background: #fff; }
 .solid { border: 0; background: var(--red); color: #fff; }
-.toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 140%); background: var(--ink); color: #fff; padding: 14px 22px; border-radius: 14px; max-width: 90vw; transition: transform 0.3s; z-index: 30; }
-.toast.on { transform: translate(-50%, 0); }
+.toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 140%); background: var(--ink); color: #fff; padding: 14px 22px; border-radius: 14px; max-width: 90vw; visibility: hidden; transition: transform 0.3s, visibility 0s 0.3s; z-index: 30; }
+.toast.on { transform: translate(-50%, 0); visibility: visible; transition: transform 0.3s; }
 
 /* Tablet */
 @media (max-width: 1080px) {
@@ -183,7 +184,7 @@ section { scroll-margin-top: 20px; }
   .icons { margin-left: auto; }
   .hero-kicker { left: 6%; font-size: 36px; }
   .hero-script { left: 4%; font-size: 200px; }
-  .hero-copy { right: 4%; width: 250px; }
+  .hero-copy { right: 96px; width: 240px; }
   .hero-copy h2 { font-size: 32px; }
   .hero-buy { left: 6%; }
   .cards { grid-template-columns: repeat(2, 1fr); }
