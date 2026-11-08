@@ -1,8 +1,9 @@
 # Promo storyboard (v2)
 
-1080×1920, 30 fps, 120 BPM, 68 beats (34 s). The look follows the "Santa's Shop" landing page:
-crimson hero with darker pine silhouettes, a white brush-script "Christmas" behind the tree,
-serif headlines, rounded product cards, pill buttons and faint swirls on the white sections.
+1080×1920, 30 fps, 120 BPM, 68 beats (34 s). The look follows the sample shop in `examples/adopt/`
+(Evergreen & Co.) and the holiday shop mockup it started from: red `#c8232c` hero with darker pine
+silhouettes, the tree standing between two layers of a white Kaushan Script word, Fraunces headlines,
+DM Sans body text, cream `#fbf6f1` sections with rounded cards, pill buttons and faint swirls.
 
 The soundtrack is the "Jingle Bells" chorus (public domain) on bells over a four-on-the-floor beat.
 The melody starts on the drop at beat 4 and ends on the final C at beat 64.

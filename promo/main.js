@@ -75,8 +75,8 @@ function swirl(x, y, size, color = '#1d1414') {
   return `<svg class="swirl" style="left:${x}px;top:${y}px;width:${size}px;height:${size}px" viewBox="0 0 ${size} ${size}"><path d="${d}" fill="none" stroke="${color}" stroke-width="${size * 0.07}" stroke-linecap="round"/></svg>`;
 }
 
-const FOREST_FAR = forest(7, 760, 13, '#b81b24', 360, 640);
-const FOREST_NEAR = forest(21, 520, 9, '#a3141c', 260, 470);
+const FOREST_FAR = forest(7, 760, 13, '#bb1f28', 360, 640);
+const FOREST_NEAR = forest(21, 520, 9, '#a51b23', 260, 470);
 const NAV = `<div class="nav"><span class="logo">xmas tree kit</span><span class="search">Search seeds…</span><span class="dot"></span><span class="dot"></span></div>`;
 const SWIRLS = swirl(820, 120, 200) + swirl(40, 1500, 160) + swirl(900, 1700, 130);
 
@@ -164,25 +164,27 @@ const HERO_BACK = (lead) => `
   <div class="abs far" style="left:0;right:0;bottom:0">${FOREST_FAR}</div>
   <div class="abs near" style="left:0;right:0;bottom:0">${FOREST_NEAR}</div>
   <div class="abs serif white lead" style="left:0;right:0;top:420px;text-align:center;font-size:62px;font-weight:400">${lead}</div>
-  <div class="abs script white word" style="left:-60px;right:-60px;top:470px;text-align:center;font-size:232px;line-height:1.3;text-shadow:0 10px 40px rgba(90,0,0,.25)">Christmas</div>`;
+  <div class="abs script white word" style="left:-60px;right:-60px;top:440px;text-align:center;font-size:262px;line-height:1.3;text-shadow:0 10px 40px rgba(90,0,0,.25)">Christmas</div>`;
 
+const WORD_FRONT = `<div class="abs script white word" style="left:-60px;right:-60px;top:440px;text-align:center;font-size:262px;line-height:1.3;clip-path:inset(-20% 0 -20% 63%)"><span class="inner" style="display:block">Christmas</span></div>`;
 S.hero.back.innerHTML = HERO_BACK('A procedural tree for') + NAV;
 S.hero.front.innerHTML = `
+  ${WORD_FRONT}
   <div class="abs copy" style="left:84px;right:84px;top:1560px">
     <div class="serif white" style="font-size:96px;font-weight:600;line-height:1.02">Grown from<br>one seed.</div>
-    <div class="serif white" style="margin-top:26px;font-size:36px;opacity:.86;line-height:1.4;max-width:820px">Branches, needles, lights and snow are built in code.</div>
+    <div class="sans white" style="margin-top:26px;font-size:36px;opacity:.86;line-height:1.4;max-width:820px">Branches, needles, lights and snow are built in code.</div>
   </div>`;
 
 S.seeds.back.innerHTML = `${SWIRLS}
   <div class="card red-bg seedcard" style="left:140px;top:600px;width:800px;height:900px">
-    <div class="abs" style="left:-40px;right:-40px;bottom:0">${forest(3, 420, 7, '#a3141c', 220, 400)}</div>
+    <div class="abs" style="left:-40px;right:-40px;bottom:0">${forest(3, 420, 7, '#a51b23', 220, 400)}</div>
     <div class="abs script num" style="left:0;right:0;top:40px;text-align:center;font-size:330px;line-height:1.2;color:rgba(255,255,255,.2)"></div>
   </div>`;
 S.seeds.front.innerHTML = `
   <div class="abs serif ink head" style="left:90px;top:200px;font-size:118px;font-weight:700;line-height:1">One seed,<br>one <em class="r">tree.</em></div>
   <div class="tag seedtag" style="right:110px;top:560px"></div>
   <div class="abs mono meta" style="left:0;right:0;top:1580px;text-align:center;font-size:38px;color:rgba(29,20,20,.6)"></div>
-  <div class="abs serif" style="left:0;right:0;top:1660px;text-align:center;font-size:38px;color:rgba(29,20,20,.55)">Same seed, same tree, every time.</div>`;
+  <div class="abs sans" style="left:0;right:0;top:1660px;text-align:center;font-size:38px;color:rgba(29,20,20,.55)">Same seed, same tree, every time.</div>`;
 
 S.presets.back.innerHTML = `${SWIRLS}
   <div class="card pcard" style="left:120px;top:560px;width:840px;height:980px;background:var(--card)"></div>`;
@@ -191,7 +193,7 @@ S.presets.front.innerHTML = `
   <div class="abs pmeta" style="left:120px;width:840px;top:560px;height:980px">
     <div class="abs mono price" style="right:52px;top:46px;font-size:40px;font-weight:700;color:var(--red-ink)"></div>
     <div class="abs serif ink name" style="left:0;right:0;bottom:92px;text-align:center;font-size:68px;font-weight:600"></div>
-    <div class="abs serif note" style="left:0;right:0;bottom:46px;text-align:center;font-size:34px;color:rgba(29,20,20,.55)"></div>
+    <div class="abs sans note" style="left:0;right:0;bottom:46px;text-align:center;font-size:34px;color:rgba(29,20,20,.55)"></div>
   </div>
   <div class="arrow" style="left:60px;top:1620px">←</div>
   <div class="arrow next" style="right:60px;top:1620px">→</div>
@@ -205,7 +207,7 @@ S.hang.front.innerHTML = `
 
 S.check.back.innerHTML = `${SWIRLS}
   <div class="card red-bg" style="left:80px;top:500px;width:920px;height:760px">
-    <div class="abs" style="left:-40px;right:-40px;bottom:0">${forest(11, 380, 8, '#a3141c', 200, 360)}</div>
+    <div class="abs" style="left:-40px;right:-40px;bottom:0">${forest(11, 380, 8, '#a51b23', 200, 360)}</div>
   </div>`;
 S.check.front.innerHTML = `
   <div class="abs serif ink head" style="left:90px;top:170px;font-size:100px;font-weight:700;line-height:1.02">Finish the<br><em class="r">decorating</em> list.</div>
@@ -217,7 +219,7 @@ S.ship.front.innerHTML = `
   ${SHIP_CARDS.map(([h], i) => `<div class="code-card" data-i="${i}"><h3><b>0${i + 1}</b>${h}</h3><pre></pre></div>`).join('')}`;
 
 S.outro.back.innerHTML = HERO_BACK('Grow your own tree for') + NAV;
-S.outro.front.innerHTML = `
+S.outro.front.innerHTML = `${WORD_FRONT}
   <div class="abs" style="left:0;right:0;top:1560px;text-align:center"><span class="pill white cta" style="font-size:40px">★ github.com/gykim80/xmas-tree-kit</span></div>
   <div class="abs serif white lic" style="left:0;right:0;top:1730px;text-align:center;font-size:44px;font-weight:600">Open source · MIT</div>`;
 
@@ -370,10 +372,14 @@ function frameAt(t) {
     q(sc.back, '.near').style.transform = `translateY(${(1 - ease((lt - 0.15) / 1.0)) * 420}px)`;
     rise(q(sc.back, '.lead'), (lt - 0.35) / 0.5, 30);
     const word = q(sc.back, '.word');
+    const fword = q(sc.front, '.word');
     const wp = outro ? easeIO((lt - 0.2) / 0.9) : easeIO((lt - 0.5) / 1.4);
     word.style.clipPath = `inset(-20% ${(1 - wp) * 100}% -20% 0)`;
+    fword.style.clipPath = `inset(-20% ${(1 - wp) * 100}% -20% 63%)`;
     const slamAt = outro ? 64 * BEAT : 4 * BEAT;
-    word.style.transform = `scale(${1 + 0.1 * punch(t - slamAt, 7) + 0.012 * hit})`;
+    const ws = `scale(${1 + 0.1 * punch(t - slamAt, 7) + 0.012 * hit})`;
+    word.style.transform = ws;
+    fword.style.transform = ws;
     if (!outro) {
       rise(q(sc.front, '.copy'), (lt - 3.0) / 0.5, 80);
     } else {
@@ -553,7 +559,7 @@ window.__promo = {
   ready: false,
 };
 
-await Promise.all(["40px Script", "40px Logo", "600 40px Serif", "40px Mono"].map((f) => document.fonts.load(f)));
+await Promise.all(["40px Script", "40px Sans", "600 40px Serif", "40px Mono"].map((f) => document.fonts.load(f)));
 window.__promo.ready = true;
 
 if (!RENDER) {
